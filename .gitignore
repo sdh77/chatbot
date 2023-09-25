@@ -1,0 +1,6 @@
+.DS_Store
+.swp
+.wsgi
+__pycache__
+testenv
+.env
