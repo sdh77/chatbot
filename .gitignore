@@ -4,3 +4,4 @@
 __pycache__
 testenv
 .env
+chatbot.wsgi
