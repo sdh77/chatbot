@@ -27,7 +27,11 @@
 		success: function(data) {
 		    let messagesDiv = $(".messages");
 	            messagesDiv.append(`<p>나: ${userMessage}</p>`);
-		    messagesDiv.append(`<p>챗봇: ${data.message}</p>`);
+		    if (data.message) {
+		        messagesDiv.append(`<p>챗봇: ${data.message}</p>`);
+		    } else if (data.response) {
+		        messagesDiv.append(`<p>챗봇: ${data.response}</p>`);
+		    }
 		}
 	    });
 	}
