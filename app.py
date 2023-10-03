@@ -26,7 +26,7 @@ def shop_parse_response(menu, quantity):
     if menu:
         return { 
             "message": f"{menu} {quantity}개 주문하시겠습니까?",
-            "action": "shoppingCart-popup"
+            "action": "chat-shoppingCart-popup"
         }
     else:
         return "해당 메뉴를 찾을 수 없습니다."              # 비슷한 메뉴명이 있으면 추천 기능도
@@ -114,35 +114,6 @@ def tree_logic(user_message):
         parent_state = "default"
         return "이해하지 못했습니다. 다시 한 번 말씀해주세요."
     
-#       if "메뉴 검색해 줘" in user_message:
-#            # parent_state = "menu_db"
-#            parent_state = "initial"
-#            return "원하시는 메뉴 이름이나 재료를 말씀해주세요.."
-#        elif "추천 메뉴 알려 줘" in user_message:
-#            # parent_state = "menu_db"
-#            parent_state = "initial"
-#            recommended_menus = Menu.query.filter_by(recommend=True).all()
-#            if recommended_menus:
-#                menu_names = [menu.name for menu in recommended_menus]
-#                response_msg = "사장님 추천 메뉴를 보여드릴게요.. " + ", ".join(menu_names)
-#            else:
-#                response_msg = "현재 추천하는 메뉴가 없습니다."
-#            return response_msg
-#        elif "취향대로 추천해 줘" in user_message:
-#            parent_state = "user_recommend"
-#            return "키오스키가 입맛에 맞게 추천해드릴게요. 저만 믿으세요!"
-#        elif "주문 도와줘" in user_message:
-#            parent_state = "order"
-#            return "주문을 도와드릴게요. (장바구니 확인 / 결제)!"
-#        elif "직원 호출해 줘" in user_message:
-#            parent_state = "service"
-#            return "어떤 서비스를 도와드릴까요?"
-#        else:
-#            parent_state = "default"
-#            return "이해하지 못했습니다."
-#    # elif parent_state == "menu_db":
-#    return None
-
 
 # Flask 앱 생성
 app = Flask(__name__)
