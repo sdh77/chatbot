@@ -26,7 +26,9 @@ def shop_parse_response(menu, quantity):
     if menu:
         return { 
             "message": f"{menu} {quantity}개 주문하시겠습니까?",
-            "action": "chat-shoppingCart-popup"
+            "action": "chat-shoppingCart-popup",
+            "menu": menu,
+            "quantity": quantity
         }
     else:
         return "해당 메뉴를 찾을 수 없습니다."              # 비슷한 메뉴명이 있으면 추천 기능도
