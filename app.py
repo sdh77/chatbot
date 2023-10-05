@@ -34,6 +34,7 @@ def shop_parse_response(menu, quantity):
         return "해당 메뉴를 찾을 수 없습니다."              # 비슷한 메뉴명이 있으면 추천 기능도
 
 
+
 ############ 추천형 챗봇 (머신러닝 모델) ############
 # 학습 데이터, 별도 파일로 분류하기. 
 training_data = [
@@ -117,6 +118,10 @@ def tree_logic(user_message):
         return "이해하지 못했습니다. 다시 한 번 말씀해주세요."
     
 
+
+
+
+
 # Flask 앱 생성
 app = Flask(__name__)
 
@@ -141,6 +146,77 @@ def chat_test():
 
     # 그 외의 경우
     return jsonify({"response": "이해하지 못했습니다."})
+
+
+
+##############chef
+
+# def chef_Tree(chef_message):
+#     if "번" in chef_message and "완료" in chef_message and "번테이블" in chef_message:
+#         matchTable = re.search(r'(\d+)번테이블', chef_message)
+#         matchMenu = re.search(r'(\d+)번', chef_message)
+        
+#     if "완료" in chef_message and "테이블" in chef_message:
+#         quantity_match = re.search(r'(\d+)테이블', chef_message)
+        
+#         dbMenu_Name = [menu.name for menu in Menu.query.all()]
+#         for menu in dbMenu_Name:
+#             if menu in chef_message:
+#                 quantity_match = re.search(r'(\d+)번', chef_message)
+#                 if quantity_match:
+#                     quantity = quantity_match.group(1)
+#                 else:
+#                     quantity = "1"
+#                 return (menu, quantity)
+
+
+
+
+
+# @app.route("/chat", methods=["POST"])
+# def chat_test():
+# return render_template("chat.html")
+
+@app.route("/chef", methods=["POST"])
+def chef_chat():
+    # return render_template("chat.html")
+    chef_message = request.json["message"]
+    if "번 완료" in chef_message and "번 테이블" in chef_message :
+        
+        matchMenu = re.search(r'(\d+)번 완료', chef_message)
+        
+        if matchMenu:
+            num = matchMenu.group(1)
+        else:
+            num = -1
+        matchTable = re.search(r'(\d+)번 테이블', chef_message)
+        
+        if matchTable:
+            table = matchTable.group(1)
+        else:
+            matchTable = -1
+        return { 
+            "action": "completeMenu",
+            "table": table,
+            "matchMenu": num,
+        }
+    # 먼저 트리형 로직 체크
+    # chef_Tree = tree_logic(chef_message)
+
+    # if isinstance(chef_Tree, dict):
+    #     return jsonify(tree_response)
+
+    # elif tree_response:
+    #     return jsonify({"response": tree_response})
+
+    # # 사용자가 "취향대로 추천해 줘" 라고 한 경우만 머신러닝 로직 체크
+    # elif parent_state == "chatbot":
+    #   return jsonify({"response": machine_recommendation(user_message)})
+
+    # # 그 외의 경우
+    # return jsonify({"response": "이해하지 못했습니다."})
+
+
 
 ### 데이터베이스 연동 ###
 # 데이터베이스 설정

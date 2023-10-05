@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-  <title>초기 머신러닝 개발</title>
+  <title>주방장 쳇</title>
 </head>
 
 <body>
@@ -22,19 +22,10 @@
       let userMessage = $(".userMessage").val();
 
       $.ajax({
-        url: 'https://ww.sdh.com/flask-app/chat',
+        url: 'https://ww.sdh.com/flask-app/chef',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ message: userMessage }),
-        success: function (data) {
-          let messagesDiv = $(".messages");
-          messagesDiv.append(`<p>나: ${userMessage}</p>`);
-          if (data.message) {
-            messagesDiv.append(`<p>챗봇: ${data.message}</p>`);
-          } else if (data.response) {
-            messagesDiv.append(`<p>챗봇: ${data.response}</p>`);
-          }
-        }
       });
     }
 
@@ -48,11 +39,6 @@
           if (event.results[i].isFinal) {
             const transcript = event.results[i][0].transcript.trim();
             console.log(transcript);
-
-            if (transcript.includes("키오스키야")) {
-              // 메시지를 chatbox에 추가
-              addMessageToChat('bot', "네, 부르셨어요?");
-            }
           }
         }
       };
@@ -62,16 +48,8 @@
       console.error('Browser does not support webkitSpeechRecognition.');
     }
 
-    function addMessageToChat(sender, message) {
-      let messagesDiv = $(".messages");
-      if (sender === 'bot') {
-        messagesDiv.append(`<p>챗봇: ${message}</p>`);
-      } else {
-        messagesDiv.append(`<p>나: ${message}</p>`);
-      }
-    }
-
   </script>
+
 </body>
 
 </html>
