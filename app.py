@@ -190,15 +190,27 @@ def chef_chat():
         else:
             num = -1
         matchTable = re.search(r'(\d+)번 테이블', chef_message)
+        table = matchTable.group(1)
         
-        if matchTable:
-            table = matchTable.group(1)
-        else:
-            matchTable = -1
+        # if matchTable:
+        #     table = matchTable.group(1)
+        # else:
+        #     matchTable = -1
         return { 
             "action": "completeMenu",
             "table": table,
             "matchMenu": num,
+        }
+    elif "번 테이블" in chef_message and "완료" in chef_message :
+        matchTable = re.search(r'(\d+)번 테이블', chef_message)
+        if matchTable:
+            table = matchTable.group(1)
+        else:
+            matchTable = -1
+        
+        return {
+            "action": "completeTable",
+            "table": table,     
         }
     # 먼저 트리형 로직 체크
     # chef_Tree = tree_logic(chef_message)
