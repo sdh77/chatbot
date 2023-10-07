@@ -21,7 +21,7 @@ def shop_parse_UserInput(user_input):
                 quantity = "1"
             return (menu, quantity)
     return (None, None)
-# 대응 메시지 생성
+# 장바구니 팝업 생성 및 수정
 def shop_parse_response(menu, quantity):
     if menu:
         return { 
@@ -32,7 +32,26 @@ def shop_parse_response(menu, quantity):
         }
     else:
         return "해당 메뉴를 찾을 수 없습니다."              # 비슷한 메뉴명이 있으면 추천 기능도
-
+def shop_parse_responseEdit(menu, quantity):
+    if menu:
+        return { 
+            "message": f"{menu} {quantity}개 주문하시겠습니까?",
+            "action": "chat-shoppingCart-popup-Edit",
+            "menu": menu,
+            "quantity": quantity
+        }
+    else:
+        return "해당 메뉴를 찾을 수 없습니다."              
+def shop_parse_responseOrderBtn():
+  return { 
+    "message": "장바구니에 담았습니다.",
+    "action": "chat-shoppingCart-popup-orderBtn",
+  }
+def shop_parse_responseCloseBtn():
+  return { 
+    "message": "장바구니를 취소했습니다.",
+    "action": "chat-shoppingCart-popup-closeBtn",
+  }
 
 ############ 추천형 챗봇 (머신러닝 모델) ############
 # 학습 데이터, 별도 파일로 분류하기. 
@@ -86,15 +105,15 @@ def tree_logic(user_message):
                 quantity_match = re.search(r'(\d+)개', user_message)
                 if quantity_match:
                     quantity = quantity_match.group(1)
-                    return f"{menu} {quantity}개 주문하시겠습니까?"
+                    return shop_parse_responseEdit(menu, quantity)
             elif "응" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message:
                 parent_state = "initial"
                 child_state = "initial"
-                return "장바구니에 담았습니다."
+                return shop_parse_responseOrderBtn() 
             elif "취소" in user_message or "잘못" in user_message or "전으로" in user_message:  # 아냐는 수량조절과 취소할 때 중복... 
                 parent_state = "initial"
                 child_state = "initial"
-                return "장바구니를 취소했습니다."
+                return shop_parse_responseCloseBtn() 
 
 
     elif parent_state == "chatbot":
