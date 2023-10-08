@@ -1,25 +1,37 @@
 from flask import Flask, request, jsonify, render_template
-#from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_extraction.text import TfidfVectorizer
-#from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.pipeline import make_pipeline
 from flask_sqlalchemy import SQLAlchemy
 import re                               # 문자열에서 특정 패턴 찾기
+
+import sys
+sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
+
+from koreanNum import korean_to_number, num_map
+
 
 
 ############ 규칙 기반 챗봇 (장바구니 기능) ############
 # 사용자의 입력에서  DB 안에 있는 메뉴 명인지, 수량은 몇개인지 분석
 def shop_parse_UserInput(user_input):
     dbMenu_Name = [menu.name for menu in Menu.query.all()]
+    quantity = "1"
+
     for menu in dbMenu_Name:
         if menu in user_input:
             quantity_match = re.search(r'(\d+)개', user_input)
             if quantity_match:
                 quantity = quantity_match.group(1)
+                return (menu, quantity)
             else:
-                quantity = "1"
-            return (menu, quantity)
+                if '개' in user_input:
+                    for word in num_map.keys():
+                        if word in user_input:
+                            quantity = str(korean_to_number(word))
+                            return (menu, quantity)
+                else: 
+                    return (menu, quantity)
     return (None, None)
 # 장바구니 팝업 생성 및 수정
 def shop_parse_response(menu, quantity):
@@ -31,17 +43,15 @@ def shop_parse_response(menu, quantity):
             "quantity": quantity
         }
     else:
-        return "해당 메뉴를 찾을 수 없습니다."              # 비슷한 메뉴명이 있으면 추천 기능도
+        parent_state, child_state = "initial"
+        return "해당 메뉴를 찾을 수 없습니다."   #비슷한 메뉴 있으면 추천 기능
 def shop_parse_responseEdit(menu, quantity):
-    if menu:
-        return { 
-            "message": f"{menu} {quantity}개 주문하시겠습니까?",
-            "action": "chat-shoppingCart-popup-Edit",
-            "menu": menu,
-            "quantity": quantity
-        }
-    else:
-        return "해당 메뉴를 찾을 수 없습니다."              
+    return { 
+        "message": f"{menu} {quantity}개 주문하시겠습니까?",
+        "action": "chat-shoppingCart-popup-Edit",
+        "menu": menu,
+        "quantity": quantity
+    }
 def shop_parse_responseOrderBtn():
   return { 
     "message": "장바구니에 담았습니다.",
@@ -52,6 +62,15 @@ def shop_parse_responseCloseBtn():
     "message": "장바구니를 취소했습니다.",
     "action": "chat-shoppingCart-popup-closeBtn",
   }
+
+############ 규칙 기반 챗봇 (주문 기능) ############
+# 주문하기
+def order_parse_response():
+    return {
+        "message": "주문이 완료되었습니다.",
+        "action": "orderBtn-click-trigger"
+    }
+
 
 
 ############ 추천형 챗봇 (머신러닝 모델) ############
@@ -91,8 +110,7 @@ def tree_logic(user_message):
                 child_state = "shop-checkout"
                 return shop_parse_response(menu, quantity)
             elif "주문" in user_message:
-                parent_state = "order"
-                return
+                return order_parse_response()
             elif "키오스키야" in user_message:          # users/index.html 에서 "키오스키야" 처리해야 함
                 parent_state = "chatbot"
                 child_state = "chatbot-initial"
@@ -107,6 +125,11 @@ def tree_logic(user_message):
                 if quantity_match:
                     quantity = quantity_match.group(1)
                     return shop_parse_responseEdit(menu, quantity)
+                else:
+                    for word in num_map.keys():
+                        if word in user_message:
+                            quantity = str(korean_to_number(word))
+                            return shop_parse_responseEdit(menu, quantity)
             elif "응" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message:
                 parent_state = "initial"
                 child_state = "initial"
@@ -137,15 +160,12 @@ def tree_logic(user_message):
         return "이해하지 못했습니다. 다시 한 번 말씀해주세요."
     
 
-
-
-
-
-# Flask 앱 생성
+############ Flask 앱 생성 #############
 app = Flask(__name__)
 
 
 # AJAX를 사용한 챗봇
+############ 챗봇 연결 ############
 @app.route("/chat", methods=["POST"])
 def chat_test():
     user_message = request.json["message"]
@@ -167,8 +187,7 @@ def chat_test():
     return jsonify({"response": "이해하지 못했습니다."})
 
 
-
-##############chef
+############ chef 주방장 메뉴 처리 상태 업데이트, 품절 관리 ############
 def check_menu(chefInput):
     dbMenu_Name = [menu.name for menu in Menu.query.all()]
     for menu in dbMenu_Name:
@@ -181,27 +200,24 @@ def chef_chat():
     # return render_template("chat.html")
     chef_message = request.json["message"]
     if "번 완료" in chef_message and "번 테이블" in chef_message :
-        
         matchMenu = re.search(r'(\d+)번 완료', chef_message)
-        
+
         if matchMenu:
             num = matchMenu.group(1)
         else:
             num = -1
         matchTable = re.search(r'(\d+)번 테이블', chef_message)
         # table = matchTable.group(1)
-        
+
         if matchTable:
             table = matchTable.group(1)
         else:
             table = -1
-        return { 
+        return {
             "action": "completeMenu",
             "table": table,
             "matchMenu": num,
         }
-        
-   
     elif "번 테이블" in chef_message and "완료" in chef_message :
         checkMenu = check_menu(chef_message)
         if checkMenu == "no menu":
@@ -210,20 +226,20 @@ def chef_chat():
                 table = matchTable.group(1)
             else:
                 matchTable = -1
-            
+
             return {
                 "action": "completeTable",
                 "table": table,
             }
         else:
             matchTable = re.search(r'(\d+)번 테이블', chef_message)
-            
+
             if matchTable:
                 table = matchTable.group(1)
             else:
                 table = -1
-            
-            return { 
+
+            return {
                 "action": "completeMenuName",
                 "table": table,
                 "matchMenu": checkMenu,
@@ -232,31 +248,15 @@ def chef_chat():
         soldOutMenu = check_menu(chef_message)
         return {
             "action": "noSoldOutMenu",
-            "soldOutMenu": soldOutMenu,     
+            "soldOutMenu": soldOutMenu,
         }
-    
+
     elif "품절" in chef_message:
         soldOutMenu = check_menu(chef_message)
         return {
             "action": "soldOutMenu",
-            "soldOutMenu": soldOutMenu,     
+            "soldOutMenu": soldOutMenu,
         }
-    # 먼저 트리형 로직 체크
-    # chef_Tree = tree_logic(chef_message)
-
-    # if isinstance(chef_Tree, dict):
-    #     return jsonify(tree_response)
-
-    # elif tree_response:
-    #     return jsonify({"response": tree_response})
-
-    # # 사용자가 "취향대로 추천해 줘" 라고 한 경우만 머신러닝 로직 체크
-    # elif parent_state == "chatbot":
-    #   return jsonify({"response": machine_recommendation(user_message)})
-
-    # # 그 외의 경우
-    # return jsonify({"response": "이해하지 못했습니다."})
-
 
 
 ### 데이터베이스 연동 ###
