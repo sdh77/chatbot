@@ -17,24 +17,12 @@
   </div>
 
   <script>
-
-    fetch("../config.json") // 설정 파일 로드
-      .then((response) => response.json())
-      .then((data) => {
-        const host = data.Host; // API 키 가져오기
-        newURL = "https://" + host + "/flask-app/chat";
-        // 나머지 코드
-      })
-      .catch((error) => {
-        console.error("Error loading config.json:", error);
-      });
-
     /* AJAX를 사용한 챗봇 */
     function sendMessage() {
       let userMessage = $(".userMessage").val();
 
       $.ajax({
-        url: newURL,
+        url: 'https://ww.sdh.com/flask-app/chat',
         method: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({ message: userMessage }),
