@@ -150,32 +150,12 @@ def chat_test():
 
 
 ##############chef
-
-# def chef_Tree(chef_message):
-#     if "번" in chef_message and "완료" in chef_message and "번테이블" in chef_message:
-#         matchTable = re.search(r'(\d+)번테이블', chef_message)
-#         matchMenu = re.search(r'(\d+)번', chef_message)
-        
-#     if "완료" in chef_message and "테이블" in chef_message:
-#         quantity_match = re.search(r'(\d+)테이블', chef_message)
-        
-#         dbMenu_Name = [menu.name for menu in Menu.query.all()]
-#         for menu in dbMenu_Name:
-#             if menu in chef_message:
-#                 quantity_match = re.search(r'(\d+)번', chef_message)
-#                 if quantity_match:
-#                     quantity = quantity_match.group(1)
-#                 else:
-#                     quantity = "1"
-#                 return (menu, quantity)
-
-
-
-
-
-# @app.route("/chat", methods=["POST"])
-# def chat_test():
-# return render_template("chat.html")
+def check_menu(chefInput):
+    dbMenu_Name = [menu.name for menu in Menu.query.all()]
+    for menu in dbMenu_Name:
+        if menu in chefInput:
+            return menu
+    return "no menu"
 
 @app.route("/chef", methods=["POST"])
 def chef_chat():
@@ -190,27 +170,57 @@ def chef_chat():
         else:
             num = -1
         matchTable = re.search(r'(\d+)번 테이블', chef_message)
-        table = matchTable.group(1)
+        # table = matchTable.group(1)
         
-        # if matchTable:
-        #     table = matchTable.group(1)
-        # else:
-        #     matchTable = -1
+        if matchTable:
+            table = matchTable.group(1)
+        else:
+            table = -1
         return { 
             "action": "completeMenu",
             "table": table,
             "matchMenu": num,
         }
-    elif "번 테이블" in chef_message and "완료" in chef_message :
-        matchTable = re.search(r'(\d+)번 테이블', chef_message)
-        if matchTable:
-            table = matchTable.group(1)
-        else:
-            matchTable = -1
         
+   
+    elif "번 테이블" in chef_message and "완료" in chef_message :
+        checkMenu = check_menu(chef_message)
+        if checkMenu == "no menu":
+            matchTable = re.search(r'(\d+)번 테이블', chef_message)
+            if matchTable:
+                table = matchTable.group(1)
+            else:
+                matchTable = -1
+            
+            return {
+                "action": "completeTable",
+                "table": table,
+            }
+        else:
+            matchTable = re.search(r'(\d+)번 테이블', chef_message)
+            
+            if matchTable:
+                table = matchTable.group(1)
+            else:
+                table = -1
+            
+            return { 
+                "action": "completeMenuName",
+                "table": table,
+                "matchMenu": checkMenu,
+            }
+    elif "품절 해제" in chef_message:
+        soldOutMenu = check_menu(chef_message)
         return {
-            "action": "completeTable",
-            "table": table,     
+            "action": "noSoldOutMenu",
+            "soldOutMenu": soldOutMenu,     
+        }
+    
+    elif "품절" in chef_message:
+        soldOutMenu = check_menu(chef_message)
+        return {
+            "action": "soldOutMenu",
+            "soldOutMenu": soldOutMenu,     
         }
     # 먼저 트리형 로직 체크
     # chef_Tree = tree_logic(chef_message)
