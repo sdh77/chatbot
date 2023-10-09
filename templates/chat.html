@@ -18,7 +18,7 @@
 
   <script>
 
-    fetch("../config.json") // 설정 파일 로드
+    fetch("/config.json") // 설정 파일 로드
       .then((response) => response.json())
       .then((data) => {
         const host = data.Host; // API 키 가져오기
