@@ -11,6 +11,8 @@ sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽�
 from koreanNum import korean_to_number, num_map
 
 
+############ 키오스크: "어서오세요. 주문을 도와드리는 키오스키입니다." ############
+
 
 ############ 규칙 기반 챗봇 (장바구니 기능) ############
 # 사용자의 입력에서  DB 안에 있는 메뉴 명인지, 수량은 몇개인지 분석
@@ -54,23 +56,48 @@ def shop_parse_responseEdit(menu, quantity):
     }
 def shop_parse_responseOrderBtn():
   return { 
-    "message": "장바구니에 담았습니다.",
+    "message": f"장바구니에 담았습니다.",
     "action": "chat-shoppingCart-popup-orderBtn",
   }
 def shop_parse_responseCloseBtn():
   return { 
-    "message": "장바구니를 취소했습니다.",
+    "message": f"장바구니를 취소했습니다.",
     "action": "chat-shoppingCart-popup-closeBtn",
   }
+
 
 ############ 규칙 기반 챗봇 (주문 기능) ############
 # 주문하기
 def order_parse_response():
+    parent_state, child_state = "initial"
     return {
-        "message": "주문이 완료되었습니다.",
+        "message": f"주문이 완료되었습니다.",
         "action": "orderBtn-click-trigger"
     }
 
+
+############ 규칙 기반 챗봇 (챗봇 기능) ############
+# 챗봇 도입
+def chatbot_parse_response():
+    return {
+        "chatbotmessage": f"무엇을 도와드릴까요?",
+        "action": "chatbot-selector"
+    }
+# 챗봇 메뉴 검색
+# def chatbot_parse_menuSearch():
+# 챗봇 추천 메뉴 출력 
+def chatbot_parse_recommendMenu():
+    child_state = "chatbot-initial"
+
+    recommend_menus = Menu.query.filter(Menu.recommend == True).all()
+    menu_names = [menu.name for menu in recommend_menus]
+    menu_string = ','.join(menu_names)
+
+    return {
+        "chatbotmessage": f"사장님 추천 메뉴를 보여드릴게요... {menu_string}",
+        "action": "chatbot-recommend",
+        "recommendMenus": menu_string
+    }
 
 
 ############ 추천형 챗봇 (머신러닝 모델) ############
@@ -111,10 +138,10 @@ def tree_logic(user_message):
                 return shop_parse_response(menu, quantity)
             elif "주문" in user_message:
                 return order_parse_response()
-            elif "키오스키야" in user_message:          # users/index.html 에서 "키오스키야" 처리해야 함
+            elif "도와줘" in user_message:          # chat_script.js에서 선택지 보여줌
                 parent_state = "chatbot"
                 child_state = "chatbot-initial"
-                return
+                return chatbot_parse_response() 
             else:
                 return "죄송합니다. 이해하지 못했어요."
 
@@ -142,21 +169,24 @@ def tree_logic(user_message):
 
     elif parent_state == "chatbot":
         if child_state == "chatbot-initial":
+            # 챗봇 상태에서도 언제든지 주문 가능
+            if "주문" in user_message:
+                return order_parse_response();
+
             if "메뉴 검색" in user_message:
                 child_state = "searchMenu"
                 return "검색할 메뉴나 재료를 말씀해주세요..."
             elif "추천 메뉴" in user_message:
                 child_state = "recommendMenu"
-                return "사장님 추천 메뉴를 보여드릴게요..."
+                return chatbot_parse_recommendMenu() 
             elif "나에게 맞는 추천" in user_message:
                 child_state = "personalMenu"
                 return "알맞는 메뉴 추천을 위해 정보를 알려주세요. 잘 먹거나 못 먹는 음식, 맵기 등 자유롭게 말씀해주세요..."
             elif "직원 호출" in user_message:
                 child_state = "service"
                 return "직원을 호출합니다..."
-        # elif child_state == "searchMenu":
+
     else:
-        parent_state = "default"
         return "이해하지 못했습니다. 다시 한 번 말씀해주세요."
     
 
