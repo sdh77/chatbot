@@ -10,6 +10,10 @@ sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽�
 
 from koreanNum import korean_to_number, num_map
 
+############ 콜 리스트
+call_List = {
+    "물","물티슈","숟가락","젓가락","앞치마","앞접시","휴지","수저"
+}
 
 ############ 키오스크: "어서오세요. 주문을 도와드리는 키오스키입니다." ############
 
@@ -141,7 +145,28 @@ def tree_logic(user_message):
             elif "도와줘" in user_message:          # chat_script.js에서 선택지 보여줌
                 parent_state = "chatbot"
                 child_state = "chatbot-initial"
-                return chatbot_parse_response() 
+                return chatbot_parse_response()
+########################################
+            elif "필요해" in user_message:
+                matchCall = re.search(r'([가-힣]+) 필요해', user_message)
+                if matchCall:
+                    call = matchCall.group(1)
+                    if(call not in call_List):
+                        call = -1
+                else:
+                    call = -1
+                return {
+                    "message": f"{call}을 가져다드리겠습니다.",
+                    "action": "call",
+                    "matchCall": call,
+                }
+            elif "종업원 불러줘" in user_message or "직원 불러줘" in user_message:
+                return {
+                    "message": "잠시만 기다려주세요",
+                    "action": "callEmployee",
+                }
+            
+########################################
             else:
                 return "죄송합니다. 이해하지 못했어요."
 
@@ -171,7 +196,7 @@ def tree_logic(user_message):
         if child_state == "chatbot-initial":
             # 챗봇 상태에서도 언제든지 주문 가능
             if "주문" in user_message:
-                return order_parse_response();
+                return order_parse_response()
 
             if "메뉴 검색" in user_message:
                 child_state = "searchMenu"
