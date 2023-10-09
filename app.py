@@ -10,10 +10,15 @@ sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽�
 
 from koreanNum import korean_to_number, num_map
 
-############ 콜 리스트
+############ 콜 리스트 ############
 call_List = {
     "물","물티슈","숟가락","젓가락","앞치마","앞접시","휴지","수저"
 }
+############ 페이지  리스트 ############
+page_List = {
+    "전체", "파스타", "라이스", "샐러드", "피자", "스테이크", "사이드", "음료", "와인 및 주류"
+}
+
 
 ############ 키오스크: "어서오세요. 주문을 도와드리는 키오스키입니다." ############
 
@@ -73,14 +78,45 @@ def shop_parse_responseCloseBtn():
 ############ 규칙 기반 챗봇 (주문 기능) ############
 # 주문하기
 def order_parse_response():
-    parent_state, child_state = "initial"
+    parent_state = child_state = "initial"
     return {
         "message": f"주문이 완료되었습니다.",
         "action": "orderBtn-click-trigger"
     }
 
 
-############ 규칙 기반 챗봇 (챗봇 기능) ############
+############ 규칙 기반 챗봇 (페이지 로드) ############
+# 원하는 페이지 로드 (상단 메뉴바)
+def pageLoad_parse_response(user_input):
+    matchPage = re.search(r'([가-힣]+) 보여.*', user_input)
+    if matchPage:
+        page = matchPage.group(1)
+        if page in page_List:
+            return {
+                "message": f"{page} 페이지 입니다.",
+                "action": "loadpage",
+                "page": page
+            }
+    return {
+        "message": f"{page} 페이지를 찾을 수 없습니다."
+    }
+# 원하는 페이지 로드 (uppage, downpage)
+
+
+############ 규칙 기반 챗봇 (추천 메뉴 로드) ############
+def pageLoad_parse_recommendMenu():
+    recommend_menus = Menu.query.filter(Menu.recommend == True).all()
+    menu_names = [menu.name for menu in recommend_menus]
+    menu_string = ','.join(menu_names)
+
+    return {
+        "message": f"사장님 추천 메뉴를 보여드릴게요... {menu_string}",
+        "action": "loadpage-recommend",
+        "recommendMenus": menu_string
+    }
+
+
+############ 머신러닝 기반 챗봇 (챗봇 기능) ############
 # 챗봇 도입
 def chatbot_parse_response():
     return {
@@ -89,19 +125,6 @@ def chatbot_parse_response():
     }
 # 챗봇 메뉴 검색
 # def chatbot_parse_menuSearch():
-# 챗봇 추천 메뉴 출력 
-def chatbot_parse_recommendMenu():
-    child_state = "chatbot-initial"
-
-    recommend_menus = Menu.query.filter(Menu.recommend == True).all()
-    menu_names = [menu.name for menu in recommend_menus]
-    menu_string = ','.join(menu_names)
-
-    return {
-        "chatbotmessage": f"사장님 추천 메뉴를 보여드릴게요... {menu_string}",
-        "action": "chatbot-recommend",
-        "recommendMenus": menu_string
-    }
 
 
 ############ 추천형 챗봇 (머신러닝 모델) ############
@@ -142,11 +165,14 @@ def tree_logic(user_message):
                 return shop_parse_response(menu, quantity)
             elif "주문" in user_message:
                 return order_parse_response()
-            elif "도와줘" in user_message:          # chat_script.js에서 선택지 보여줌
+            elif "보여줘" in user_message or "보여 줘" in user_message:
+                return pageLoad_parse_response(user_message)
+            elif "추천 메뉴" in user_message:
+                return pageLoad_parse_recommendMenu() 
+            elif "키오스키야" in user_message:          # chat_script.js에서 선택지 보여줌
                 parent_state = "chatbot"
                 child_state = "chatbot-initial"
                 return chatbot_parse_response()
-########################################
             elif "필요해" in user_message:
                 matchCall = re.search(r'([가-힣]+) 필요해', user_message)
                 if matchCall:
@@ -166,7 +192,6 @@ def tree_logic(user_message):
                     "action": "callEmployee",
                 }
             
-########################################
             else:
                 return "죄송합니다. 이해하지 못했어요."
 
@@ -201,9 +226,6 @@ def tree_logic(user_message):
             if "메뉴 검색" in user_message:
                 child_state = "searchMenu"
                 return "검색할 메뉴나 재료를 말씀해주세요..."
-            elif "추천 메뉴" in user_message:
-                child_state = "recommendMenu"
-                return chatbot_parse_recommendMenu() 
             elif "나에게 맞는 추천" in user_message:
                 child_state = "personalMenu"
                 return "알맞는 메뉴 추천을 위해 정보를 알려주세요. 잘 먹거나 못 먹는 음식, 맵기 등 자유롭게 말씀해주세요..."
