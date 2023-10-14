@@ -103,6 +103,22 @@ def pageLoad_parse_response(user_input):
 # 원하는 페이지 로드 (uppage, downpage)
 
 
+############ 규칙 기반 챗봇 (메뉴 검색 로드) ############
+def pageLoad_parse_searchMenu(user_input):
+    matched_menus = Menu.query.filter(Menu.name.like(f"%{user_input}%")).all()
+    menu_names = [menu.name for menu in matched_menus]
+    menu_string = ','.join(menu_names)
+
+    if menu_names: 
+        return {
+            "message": f"메뉴 검색 결과입니다. {menu_string}",
+            "action": "loadpage-search",
+            "searchMenus": menu_string
+        }
+    else:
+        return { "message": f"{user_input} 메뉴가 없습니다." }
+
+
 ############ 규칙 기반 챗봇 (추천 메뉴 로드) ############
 def pageLoad_parse_recommendMenu():
     recommend_menus = Menu.query.filter(Menu.recommend == True).all()
@@ -167,12 +183,11 @@ def tree_logic(user_message):
                 return order_parse_response()
             elif "보여줘" in user_message or "보여 줘" in user_message:
                 return pageLoad_parse_response(user_message)
+            elif "메뉴 검색" in user_message:
+                parent_state = "search"
+                return "검색할 키워드를 말씀해 주세요..." 
             elif "추천 메뉴" in user_message:
                 return pageLoad_parse_recommendMenu() 
-            elif "키오스키야" in user_message:          # chat_script.js에서 선택지 보여줌
-                parent_state = "chatbot"
-                child_state = "chatbot-initial"
-                return chatbot_parse_response()
             elif "필요해" in user_message:
                 matchCall = re.search(r'([가-힣]+) 필요해', user_message)
                 if matchCall:
@@ -216,22 +231,10 @@ def tree_logic(user_message):
                 child_state = "initial"
                 return shop_parse_responseCloseBtn() 
 
-
-    elif parent_state == "chatbot":
-        if child_state == "chatbot-initial":
-            # 챗봇 상태에서도 언제든지 주문 가능
-            if "주문" in user_message:
-                return order_parse_response()
-
-            if "메뉴 검색" in user_message:
-                child_state = "searchMenu"
-                return "검색할 메뉴나 재료를 말씀해주세요..."
-            elif "나에게 맞는 추천" in user_message:
-                child_state = "personalMenu"
-                return "알맞는 메뉴 추천을 위해 정보를 알려주세요. 잘 먹거나 못 먹는 음식, 맵기 등 자유롭게 말씀해주세요..."
-            elif "직원 호출" in user_message:
-                child_state = "service"
-                return "직원을 호출합니다..."
+    elif parent_state == "search":
+        parent_state = "initial"
+        return pageLoad_parse_searchMenu(user_message)
+            
 
     else:
         return "이해하지 못했습니다. 다시 한 번 말씀해주세요."
