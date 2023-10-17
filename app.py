@@ -9,6 +9,7 @@ import sys
 sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
 
 from koreanNum import korean_to_number, num_map
+from nlp_model import NLPHandler
 
 ############ 콜 리스트 ############
 call_List = {
@@ -105,7 +106,10 @@ def pageLoad_parse_response(user_input):
 
 ############ 규칙 기반 챗봇 (메뉴 검색 로드) ############
 def pageLoad_parse_searchMenu(user_input):
-    matched_menus = Menu.query.filter(Menu.name.like(f"%{user_input}%")).all()
+    matched_by_name = Menu.query.filter(Menu.name.like(f"%{user_input}%")).all()
+    matched_by_ingredient = Menu.query.filter(Menu.ingredient.like(f"%{user_input}%")).all()
+    all_matched = list(matched_by_name) +     list(matched_by_ingredient)
+    matched_menus = list(set(all_matched))
     menu_names = [menu.name for menu in matched_menus]
     menu_string = ','.join(menu_names)
 
@@ -132,35 +136,17 @@ def pageLoad_parse_recommendMenu():
     }
 
 
-############ 머신러닝 기반 챗봇 (챗봇 기능) ############
-# 챗봇 도입
-def chatbot_parse_response():
+############ 규칙 기반 챗봇 (매운거 로드) ############
+# 주문하기
+def spicy_parse_response():
+    spicy_menus = Menu.query.filter(Menu.spicy > 0).all()
+    menu_names = [menu.name for menu in spicy_menus]
+    menu_string = ','.join(menu_names)
     return {
-        "chatbotmessage": f"무엇을 도와드릴까요?",
-        "action": "chatbot-selector"
+        "message": f"맵기 순으로 보여드릴게요... ",
+        "action": "loadpage-spicy",
+        "spicyMenus": menu_string
     }
-# 챗봇 메뉴 검색
-# def chatbot_parse_menuSearch():
-
-
-############ 추천형 챗봇 (머신러닝 모델) ############
-# 학습 데이터, 별도 파일로 분류하기. 
-training_data = [
-    ("안녕", "안녕하세요!"),
-    ("메뉴 추천해줘", "부채살 스테이크, 우삼겹 마라 오일 스파게티가 인기메뉴입니다."),
-    ("다이어트에 좋은 음식을 알려줘", "샐러드 종류를 곁들여 드세요."),
-    ("매운 음식을 보여줘", "스파이시 투움바는 어떠세요?"),
-    ("영업 시간이 언제야?", "오전 9시부터 오후 10시까지입니다.")
-]
-# 모델 훈련
-X_train = [x[0] for x in training_data]
-y_train = [x[1] for x in training_data]
-
-model = make_pipeline(TfidfVectorizer(), SVC()).fit(X_train, y_train)
-# 취향대로 추천해 줘 -> 머신러닝 모델 사용
-def machine_recommendation(user_message):
-    response = model.predict([user_message])
-    return response[0]
 
 
 ############ 트리형 챗봇 ############
@@ -188,6 +174,9 @@ def tree_logic(user_message):
                 return "검색할 키워드를 말씀해 주세요..." 
             elif "추천 메뉴" in user_message:
                 return pageLoad_parse_recommendMenu() 
+            # 매운거 있어? 아직 구현 안 함
+            elif "매운" in user_message:
+                return spicy_parse_response()
             elif "필요해" in user_message:
                 matchCall = re.search(r'([가-힣]+) 필요해', user_message)
                 if matchCall:
@@ -207,8 +196,6 @@ def tree_logic(user_message):
                     "action": "callEmployee",
                 }
             
-            else:
-                return "죄송합니다. 이해하지 못했어요."
 
     elif parent_state == "shop":
         if child_state == "shop-checkout":
@@ -222,7 +209,7 @@ def tree_logic(user_message):
                         if word in user_message:
                             quantity = str(korean_to_number(word))
                             return shop_parse_responseEdit(menu, quantity)
-            elif "응" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message:
+            elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message:
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseOrderBtn() 
@@ -250,20 +237,21 @@ app = Flask(__name__)
 def chat_test():
     user_message = request.json["message"]
    
-    # 먼저 트리형 로직 체크
+    # 1. 먼저 트리형 로직 처리
     tree_response = tree_logic(user_message)
 
     if isinstance(tree_response, dict):
         return jsonify(tree_response)
-
     elif tree_response:
         return jsonify({"response": tree_response})
 
-    # 사용자가 "취향대로 추천해 줘" 라고 한 경우만 머신러닝 로직 체크
-    elif parent_state == "chatbot":
-      return jsonify({"response": machine_recommendation(user_message)})
+    # 2. NLP 응답
+    model_instance = NLPHandler()
+    intent = model_instance.classify_intent(user_message)
+    if intent == "recommend":
+        return pageLoad_parse_recommendMenu()
 
-    # 그 외의 경우
+    # 3. 알 수 없는 명령어 처리
     return jsonify({"response": "이해하지 못했습니다."})
 
 
@@ -359,6 +347,7 @@ class Menu(db.Model):
     new = db.Column(db.Boolean)
     index = db.Column(db.Integer)
     trash = db.Column(db.Boolean, default=False)
+    ingredient = db.Column(db.String(50))
 
     def __repr__(self):
         return f'<menu {self.name}>'
