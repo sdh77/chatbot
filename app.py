@@ -79,11 +79,21 @@ def shop_parse_responseCloseBtn():
 ############ 규칙 기반 챗봇 (주문 기능) ############
 # 주문하기
 def order_parse_response():
-    parent_state = child_state = "initial"
     return {
-        "message": f"주문이 완료되었습니다.",
+        "message": f"장바구니를 확인해주세요. 주문 내역이 맞으신가요?",
+        "action": "orderBtn-popup-click-trigger"
+    }
+def order_parse_YesBtn():
+    return {
+        "message": f"주문이 완료되었습니다.",  # 몇분 기다리세요도 넣기
         "action": "orderBtn-click-trigger"
     }
+def order_parse_NoBtn():
+    return {
+        "message": f"주문이 취소되었습니다.",  # 몇분 기다리세요도 넣기
+        "action": "orderBtn-close-click-trigger"
+    }
+
 
 
 ############ 규칙 기반 챗봇 (페이지 로드) ############
@@ -166,6 +176,7 @@ def tree_logic(user_message):
                 child_state = "shop-checkout"
                 return shop_parse_response(menu, quantity)
             elif "주문" in user_message:
+                parent_state = "order"
                 return order_parse_response()
             elif "보여줘" in user_message or "보여 줘" in user_message:
                 return pageLoad_parse_response(user_message)
@@ -217,6 +228,14 @@ def tree_logic(user_message):
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseCloseBtn() 
+
+    elif parent_state == "order":
+        if "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message:
+            parent_state = "initial"
+            return order_parse_YesBtn()
+        elif "취소" in user_message or "잘못" in user_message or "전으로" in user_message: 
+            parent_state = "initial"
+            return order_parse_NoBtn()
 
     elif parent_state == "search":
         parent_state = "initial"
