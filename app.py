@@ -326,6 +326,29 @@ def chef_chat():
             "soldOutMenu": soldOutMenu,
         }
 
+def employee_chat():
+    employee_message = request.json["message"]
+    if "번 완료" in chef_message and "번 테이블" in employee_message :
+    matchMenu = re.search(r'(\d+)번 완료', employee_message)
+
+    if matchMenu:
+        num = matchMenu.group(1)
+    else:
+        num = -1
+    matchTable = re.search(r'(\d+)번 테이블', employee_message)
+    # table = matchTable.group(1)
+
+    if matchTable:
+        table = matchTable.group(1)
+    else:
+        table = -1
+    return {
+        "action": "completeMenu",
+        "table": table,
+        "matchMenu": num,
+    }
+
+
 
 ### 데이터베이스 연동 ###
 # 데이터베이스 설정
