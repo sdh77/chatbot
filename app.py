@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 import re                               # 문자열에서 특정 패턴 찾기
 
 import sys
-sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
+sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
 
 from koreanNum import korean_to_number, num_map
 from nlp_model import NLPHandler
@@ -326,27 +326,52 @@ def chef_chat():
             "soldOutMenu": soldOutMenu,
         }
 
+def check_menu(employeeInput):
+    dbMenu_Name = [menu.name for menu in Menu.query.all()]
+    for menu in dbMenu_Name:
+        if menu in employeeInput:
+            return menu
+    return "no menu"
+
+@app.route("/employee", methods=["POST"])
 def employee_chat():
     employee_message = request.json["message"]
-    if "번 완료" in chef_message and "번 테이블" in employee_message :
-    matchMenu = re.search(r'(\d+)번 완료', employee_message)
+    if "번 완료" in employee_message and "번 테이블" in employee_message:
+        matchMenu = re.search(r'(\d+)번 완료', employee_message)
 
-    if matchMenu:
-        num = matchMenu.group(1)
-    else:
-        num = -1
-    matchTable = re.search(r'(\d+)번 테이블', employee_message)
-    # table = matchTable.group(1)
+        if matchMenu:
+            num = matchMenu.group(1)
+        else:
+            num = -1
 
-    if matchTable:
-        table = matchTable.group(1)
-    else:
-        table = -1
-    return {
-        "action": "completeMenu",
-        "table": table,
-        "matchMenu": num,
-    }
+        matchTable = re.search(r'(\d+)번 테이블', employee_message)
+
+        if matchTable:
+            table = matchTable.group(1)
+        else:
+            table = -1
+        
+        return {
+            "action": "completeMenu",
+            "table": table,
+            "num": num
+        }
+    # elif "번 테이블" in employee_message and "완료" in employee_message:
+
+    elif "품절 해제" in employee_message:
+        soldOutMenu = check_menu(employee_message)
+        return {
+            "action": "noSoldOutMenu",
+            "soldOutMenu": soldOutMenu,
+        }
+        
+    elif "품절" in employee_message:
+        soldOutMenu = check_menu(employee_message)
+        return {
+            "action": "soldOutMenu",
+            "soldOutMenu": soldOutMenu,
+        }
+
 
 
 
