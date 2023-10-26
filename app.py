@@ -3,6 +3,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 from sklearn.pipeline import make_pipeline
 from flask_sqlalchemy import SQLAlchemy
+from fuzzywuzzy import process          # 유사 문자열 찾기
 import re                               # 문자열에서 특정 패턴 찾기
 
 import sys
@@ -25,26 +26,33 @@ page_List = {
 
 
 ############ 규칙 기반 챗봇 (장바구니 기능) ############
+# 사용자의 입력에서, 메뉴 명을 잘못 입력했을 시, 유사한 메뉴를 추천하는 기능
+def find_best_match(input_str, menuDB):
+    best_match, score = process.extractOne(input_str, menuDB)
+    if score > 80:
+        return best_match
+    return None
 # 사용자의 입력에서  DB 안에 있는 메뉴 명인지, 수량은 몇개인지 분석
 def shop_parse_UserInput(user_input):
     dbMenu_Name = [menu.name for menu in Menu.query.all()]
     quantity = "1"
 
-    for menu in dbMenu_Name:
-        if menu in user_input:
-            quantity_match = re.search(r'(\d+)개', user_input)
-            if quantity_match:
-                quantity = quantity_match.group(1)
-                return (menu, quantity)
-            else:
-                if '개' in user_input:
-                    for word in num_map.keys():
-                        if word in user_input:
-                            quantity = str(korean_to_number(word))
-                            return (menu, quantity)
-                else: 
-                    return (menu, quantity)
-    return (None, None)
+    matched_menu = next((menu for menu in dbMenu_Name if menu in user_input), None)
+
+    if not matched_menu:
+        matched_menu = find_best_match(user_input, dbMenu_Name)
+
+    quantity_match = re.search(r'(\d+)개', user_input)
+    if quantity_match:
+        quantity = quantity_match.group(1)
+    else:
+        for word in num_map.keys():
+            if word in user_input:
+                quantity = str(korean_to_number(word))
+                break
+
+    return (matched_menu, quantity)
+
 # 장바구니 팝업 생성 및 수정
 def shop_parse_response(menu, quantity):
     if menu:
@@ -81,6 +89,7 @@ def shop_parse_responseCloseBtn():
 def order_parse_response():
     return {
         "message": f"장바구니를 확인해주세요. 주문 내역이 맞으신가요?",
+        "message2": f"장바구니가 비어있습니다.",
         "action": "orderBtn-popup-click-trigger"
     }
 def order_parse_YesBtn():
@@ -99,7 +108,7 @@ def order_parse_NoBtn():
 ############ 규칙 기반 챗봇 (페이지 로드) ############
 # 원하는 페이지 로드 (상단 메뉴바)
 def pageLoad_parse_response(user_input):
-    matchPage = re.search(r'([가-힣]+) 보여.*', user_input)
+    matchPage = re.search(r'([가-힣]+) (보여|주문).*', user_input)
     if matchPage:
         page = matchPage.group(1)
         if page in page_List:
@@ -116,6 +125,7 @@ def pageLoad_parse_response(user_input):
 
 ############ 규칙 기반 챗봇 (메뉴 검색 로드) ############
 def pageLoad_parse_searchMenu(user_input):
+    user_input_keyword = user_input
     matched_by_name = Menu.query.filter(Menu.name.like(f"%{user_input}%")).all()
     matched_by_ingredient = Menu.query.filter(Menu.ingredient.like(f"%{user_input}%")).all()
     all_matched = list(matched_by_name) +     list(matched_by_ingredient)
@@ -125,12 +135,12 @@ def pageLoad_parse_searchMenu(user_input):
 
     if menu_names: 
         return {
-            "message": f"메뉴 검색 결과입니다. {menu_string}",
+            "message": f"{user_input_keyword} 검색 결과입니다.",
             "action": "loadpage-search",
             "searchMenus": menu_string
         }
     else:
-        return { "message": f"{user_input} 메뉴가 없습니다." }
+        return { "message": f"{user_input_keyword} 메뉴가 없습니다." }
 
 
 ############ 규칙 기반 챗봇 (추천 메뉴 로드) ############
@@ -140,7 +150,7 @@ def pageLoad_parse_recommendMenu():
     menu_string = ','.join(menu_names)
 
     return {
-        "message": f"사장님 추천 메뉴를 보여드릴게요... {menu_string}",
+        "message": f"사장님 추천 메뉴를 보여드릴게요...",
         "action": "loadpage-recommend",
         "recommendMenus": menu_string
     }
@@ -168,6 +178,11 @@ child_state = "initial"
 def tree_logic(user_message):
     global parent_state, child_state, menu, quantity
 
+    if "처음으로" in user_message:
+        parent_state = "initial"
+        child_state = "initial"
+        return "어서오세요. 주문을 도와드리는 키오스키입니다."
+
     if parent_state == "initial":
         if child_state == "initial":
             menu, quantity = shop_parse_UserInput(user_message)     # 장바구니 기능을 위한 변수
@@ -178,6 +193,8 @@ def tree_logic(user_message):
             elif "주문" in user_message:
                 parent_state = "order"
                 return order_parse_response()
+            elif "매운" in user_message:
+                return spicy_parse_response()
             elif "보여줘" in user_message or "보여 줘" in user_message:
                 return pageLoad_parse_response(user_message)
             elif "메뉴 검색" in user_message:
@@ -185,9 +202,6 @@ def tree_logic(user_message):
                 return "검색할 키워드를 말씀해 주세요..." 
             elif "추천 메뉴" in user_message:
                 return pageLoad_parse_recommendMenu() 
-            # 매운거 있어? 아직 구현 안 함
-            elif "매운" in user_message:
-                return spicy_parse_response()
             elif "필요해" in user_message:
                 matchCall = re.search(r'([가-힣]+) 필요해', user_message)
                 if matchCall:
@@ -207,7 +221,6 @@ def tree_logic(user_message):
                     "action": "callEmployee",
                 }
             
-
     elif parent_state == "shop":
         if child_state == "shop-checkout":
             if "개" in user_message:                 # "아냐 2개 주문할래"
@@ -269,9 +282,26 @@ def chat_test():
     intent = model_instance.classify_intent(user_message)
     if intent == "recommend":
         return pageLoad_parse_recommendMenu()
+    elif intent == "greeting":
+        return "안녕하세요"
+    elif intent == "farewell":
+        return "안녕히 가세요"
+    elif intent == "test":
+        return "hummmmmmm..."
 
     # 3. 알 수 없는 명령어 처리
     return jsonify({"response": "이해하지 못했습니다."})
+
+
+@app.route('/update_state', methods=['POST'])
+############ AJAX를 통해 추적 상태 수정 ############
+def update_state():
+    global parent_state
+    new_state = request.json.get('new_state')
+    if new_state:
+        parent_state = new_state
+        return order_parse_response()
+    return "연결 오류"
 
 
 ############ chef 주방장 메뉴 처리 상태 업데이트, 품절 관리 ############
@@ -346,7 +376,7 @@ def chef_chat():
         }
 
 
-### 데이터베이스 연동 ###
+############ 데이터베이스 연동 ############
 # 데이터베이스 설정
 app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://hanium_kioski:aaa@localhost/ilprimo'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
