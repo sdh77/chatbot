@@ -356,7 +356,26 @@ def employee_chat():
             "table": table,
             "num": num
         }
-    # elif "번 테이블" in employee_message and "완료" in employee_message:
+    elif "번 테이블" in employee_message and "완료" in employee_message:
+        matchTable = re.search(r'(\d+)번 테이블', employee_message)
+
+        if matchTable:
+            table = matchTable.group(1)
+        else:
+            table = -1
+
+        if "호출" in employee_message:
+            return {
+                "action": "completeCall",
+                "table": table
+            }
+        else:
+            return {
+                "action": "completeTable",
+                "table": table
+            }
+
+        
 
     elif "품절 해제" in employee_message:
         soldOutMenu = check_menu(employee_message)
