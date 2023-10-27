@@ -3,7 +3,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 from sklearn.pipeline import make_pipeline
 from flask_sqlalchemy import SQLAlchemy
-from fuzzywuzzy import process          # 유사 문자열 찾기
+# from fuzzywuzzy import process          # 유사 문자열 찾기
 import re                               # 문자열에서 특정 패턴 찾기
 
 import sys
@@ -423,8 +423,6 @@ def employee_chat():
                 "action": "completeTable",
                 "table": table
             }
-
-        
 
     elif "품절 해제" in employee_message:
         soldOutMenu = check_menu(employee_message)
