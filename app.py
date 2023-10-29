@@ -406,22 +406,31 @@ def employee_chat():
             "num": num
         }
     elif "번 테이블" in employee_message and "완료" in employee_message:
+        
         matchTable = re.search(r'(\d+)번 테이블', employee_message)
 
         if matchTable:
             table = matchTable.group(1)
         else:
             table = -1
-
-        if "호출" in employee_message:
-            return {
-                "action": "completeCall",
-                "table": table
-            }
+        
+        checkMenu = check_menu(employee_message)
+        if(checkMenu == "no menu") :
+            if "호출" in employee_message:
+                return {
+                    "action": "completeCall",
+                    "table": table
+                }
+            else:
+                return {
+                    "action": "completeTable",
+                    "table": table
+                }
         else:
             return {
-                "action": "completeTable",
-                "table": table
+                "action" : "completeMenuName",
+                "table": table,
+                "matchMenu" : checkMenu
             }
 
     elif "품절 해제" in employee_message:
