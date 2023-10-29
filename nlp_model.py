@@ -1,6 +1,6 @@
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import LinearSVC
-# from konlpy.tag import Okt
+from konlpy.tag import Okt
 
 class NLPHandler:
     def __init__(self):

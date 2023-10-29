@@ -3,11 +3,12 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.svm import SVC
 from sklearn.pipeline import make_pipeline
 from flask_sqlalchemy import SQLAlchemy
-# from fuzzywuzzy import process          # 유사 문자열 찾기
+from fuzzywuzzy import process          # 유사 문자열 찾기
 import re                               # 문자열에서 특정 패턴 찾기
 
 import sys
-sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
+sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
+#sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
 
 from koreanNum import korean_to_number, num_map
 from nlp_model import NLPHandler
@@ -195,13 +196,13 @@ def tree_logic(user_message):
                 return order_parse_response()
             elif "매운" in user_message:
                 return spicy_parse_response()
-            elif "보여줘" in user_message or "보여 줘" in user_message:
-                return pageLoad_parse_response(user_message)
             elif "메뉴 검색" in user_message:
                 parent_state = "search"
                 return "검색할 키워드를 말씀해 주세요..." 
-            elif "추천 메뉴" in user_message:
+            elif "추천 메뉴" in user_message or "메뉴 추천" in user_message:
                 return pageLoad_parse_recommendMenu() 
+            elif "보여줘" in user_message or "보여 줘" in user_message:
+                return pageLoad_parse_response(user_message)
             elif "필요해" in user_message:
                 matchCall = re.search(r'([가-힣]+) 필요해', user_message)
                 if matchCall:
