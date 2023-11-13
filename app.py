@@ -40,7 +40,9 @@ def shop_parse_UserInput(user_input):
 
     matched_menu = next((menu for menu in dbMenu_Name if menu in user_input), None)
 
-    if not matched_menu:
+    #if not matched_menu and len(user_input) >= 3:
+    #if not matched_menu:
+    if user_input and not matched_menu and len(user_input) >= 3:
         matched_menu = find_best_match(user_input, dbMenu_Name)
 
     quantity_match = re.search(r'(\d+)개', user_input)
