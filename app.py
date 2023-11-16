@@ -205,6 +205,17 @@ def tree_logic(user_message):
                 return pageLoad_parse_recommendMenu() 
             elif "보여줘" in user_message or "보여 줘" in user_message:
                 return pageLoad_parse_response(user_message)
+            # 대화 스크립트 추가
+            elif "안녕" in user_message or "꿈돌아" in user_message:
+                return "안녕하세요!"
+            elif "뭐 먹을까" in user_message or "오늘 뭐 먹지" in user_message or "뭐 먹지" in user_message or "결정 장애" in user_message:
+                return pageLoad_parse_recommendMenu()
+            elif "영업 시간" in user_message:
+                return "오전 11시부터 오후 10시까지 입니다."
+            elif "사용" in user_message:
+                return "오늘 뭐 먹지 라고 말해보세요."
+            elif "바보" in user_message or "멍청" in user_message or "멍충" in user_message:
+                return "죄송합니다. 제가 도움이 되지 못한 것 같네요."
             elif "필요해" in user_message:
                 matchCall = re.search(r'([가-힣]+) 필요해', user_message)
                 if matchCall:
@@ -226,8 +237,8 @@ def tree_logic(user_message):
             
     elif parent_state == "shop":
         if child_state == "shop-checkout":
-            if "개" in user_message:                 # "아냐 2개 주문할래"
-                quantity_match = re.search(r'(\d+)개', user_message)
+            if "개" in user_message:                 # "2개 주문할래"
+                quantity_match = re.search(r'(\d+)\s*개', user_message)
                 if quantity_match:
                     quantity = quantity_match.group(1)
                     return shop_parse_responseEdit(menu, quantity)
@@ -240,7 +251,7 @@ def tree_logic(user_message):
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseOrderBtn() 
-            elif "취소" in user_message or "잘못" in user_message or "전으로" in user_message:  # 아냐는 수량조절과 취소할 때 중복... 
+            elif "취소" in user_message or "잘못" in user_message or "전으로" in user_message or "아니" in user_message or "모르겠어" in user_message or "몰라" in user_message:  # 아냐는 수량조절과 취소할 때 중복... 
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseCloseBtn() 
@@ -249,7 +260,7 @@ def tree_logic(user_message):
         if "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message:
             parent_state = "initial"
             return order_parse_YesBtn()
-        elif "취소" in user_message or "잘못" in user_message or "전으로" in user_message: 
+        elif "취소" in user_message or "잘못" in user_message or "전으로" in user_message or "아니" in user_message or "모르겠어" in user_message or "몰라" in user_message:
             parent_state = "initial"
             return order_parse_NoBtn()
 
@@ -409,31 +420,22 @@ def employee_chat():
             "num": num
         }
     elif "번 테이블" in employee_message and "완료" in employee_message:
-        
         matchTable = re.search(r'(\d+)번 테이블', employee_message)
 
         if matchTable:
             table = matchTable.group(1)
         else:
             table = -1
-        
-        checkMenu = check_menu(employee_message)
-        if(checkMenu == "no menu") :
-            if "호출" in employee_message:
-                return {
-                    "action": "completeCall",
-                    "table": table
-                }
-            else:
-                return {
-                    "action": "completeTable",
-                    "table": table
-                }
+
+        if "호출" in employee_message:
+            return {
+                "action": "completeCall",
+                "table": table
+            }
         else:
             return {
-                "action" : "completeMenuName",
-                "table": table,
-                "matchMenu" : checkMenu
+                "action": "completeTable",
+                "table": table
             }
 
     elif "품절 해제" in employee_message:
