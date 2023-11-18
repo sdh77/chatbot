@@ -7,12 +7,12 @@ from fuzzywuzzy import process          # 유사 문자열 찾기
 import re                               # 문자열에서 특정 패턴 찾기
 
 import sys
-sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
+#sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
 #sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
 # jvmpath = '/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/jre/lib/jli/libjli.dylib'
 
-from koreanNum import korean_to_number, num_map
-from nlp_model import NLPHandler
+#from koreanNum import korean_to_number, num_map
+#from nlp_model import NLPHandler
 
 ############ 콜 리스트 ############
 call_List = {
@@ -22,6 +22,14 @@ call_List = {
 page_List = {
     "전체", "파스타", "라이스", "샐러드", "피자", "스테이크", "사이드", "음료", "와인 및 주류"
 }
+############ 숫자-한국어  리스트 ############
+num_map = {
+    '하나': 1, '한': 1, '둘': 2, '두': 2, '셋': 3, '세': 3, '넷': 4, '네': 4, '>다섯': 5, '여섯': 6, '일곱': 7, '여덟': 8, '아홉': 9, '열': 10
+}
+def korean_to_number(word):
+    return num_map.get(word, None)
+
+
 
 
 ############ 키오스크: "어서오세요. 주문을 도와드리는 키오스키입니다." ############
