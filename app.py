@@ -7,8 +7,8 @@ from fuzzywuzzy import process          # 유사 문자열 찾기
 import re                               # 문자열에서 특정 패턴 찾기
 
 import sys
-# sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
-sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
+sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
+#sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
 # jvmpath = '/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/jre/lib/jli/libjli.dylib'
 
 from koreanNum import korean_to_number, num_map
@@ -41,9 +41,10 @@ def shop_parse_UserInput(user_input):
 
     matched_menu = next((menu for menu in dbMenu_Name if menu in user_input), None)
 
-    #if not matched_menu and len(user_input) >= 3:
-    #if not matched_menu:
-    if user_input and not matched_menu and len(user_input) >= 3:
+    if user_input in page_List:
+        return None
+
+    if user_input and not matched_menu and len(user_input) >= 2:
         matched_menu = find_best_match(user_input, dbMenu_Name)
 
     quantity_match = re.search(r'(\d+)개', user_input)
@@ -189,7 +190,10 @@ def tree_logic(user_message):
 
     if parent_state == "initial":
         if child_state == "initial":
-            menu, quantity = shop_parse_UserInput(user_message)     # 장바구니 기능을 위한 변수
+            if "보여줘" in user_message or "보여 줘" in user_message:
+                return pageLoad_parse_response(user_message)
+            # 메뉴와 개수로 장바구니
+            menu, quantity = shop_parse_UserInput(user_message)
             if menu and quantity:
                 parent_state = "shop"
                 child_state = "shop-checkout"
@@ -204,8 +208,6 @@ def tree_logic(user_message):
                 return "검색할 키워드를 말씀해 주세요..." 
             elif "추천" in user_message:
                 return pageLoad_parse_recommendMenu() 
-            elif "보여줘" in user_message or "보여 줘" in user_message:
-                return pageLoad_parse_response(user_message)
             # 대화 스크립트 추가
             elif "안녕" in user_message or "여보세요" in user_message or "키 오 스 키 아" in user_message or "스퀘어" in user_message or "티오" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
                 return "안녕하세요! 무엇을 도와드릴까요?"
@@ -248,7 +250,7 @@ def tree_logic(user_message):
                         if word in user_message:
                             quantity = str(korean_to_number(word))
                             return shop_parse_responseEdit(menu, quantity)
-            elif "취소" in user_message or "잘못" in user_message or "전으로" in user_message:  # 아냐는 수량조절과 취소할 때 중복... 
+            elif "취소" in user_message or "아니" in user_message or "잘못" in user_message or "전으로" in user_message:  # 아냐는 수량조절과 취소할 때 중복... 
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseCloseBtn() 
@@ -293,16 +295,16 @@ def chat_test():
         return jsonify({"response": tree_response})
 
     # 2. NLP 응답
-    model_instance = NLPHandler()
-    intent = model_instance.classify_intent(user_message)
-    if intent == "recommend":
-        return pageLoad_parse_recommendMenu()
-    elif intent == "greeting":
-        return "안녕하세요"
-    elif intent == "farewell":
-        return "안녕히 가세요"
-    elif intent == "test":
-        return "hummmmmmm..."
+    #model_instance = NLPHandler()
+    #intent = model_instance.classify_intent(user_message)
+    #if intent == "recommend":
+    #    return pageLoad_parse_recommendMenu()
+    #elif intent == "greeting":
+    #    return "안녕하세요"
+    #elif intent == "farewell":
+    #    return "안녕히 가세요"
+    #elif intent == "test":
+    #    return "hummmmmmm..."
 
     # 3. 알 수 없는 명령어 처리
     return jsonify({"response": "이해하지 못했습니다."})
