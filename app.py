@@ -7,16 +7,16 @@ from fuzzywuzzy import process          # 유사 문자열 찾기
 import re                               # 문자열에서 특정 패턴 찾기
 
 import sys
-#sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
-#sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
+# sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
+# sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
 # jvmpath = '/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/jre/lib/jli/libjli.dylib'
 
-#from koreanNum import korean_to_number, num_map
-#from nlp_model import NLPHandler
+# from koreanNum import korean_to_number, num_map
+# from nlp_model import NLPHandler
 
 ############ 콜 리스트 ############
 call_List = {
-    "물","물티슈","숟가락","젓가락","앞치마","앞접시","휴지","수저"
+    "물", "물티슈", "숟가락", "젓가락", "앞치마", "앞접시", "휴지", "수저"
 }
 ############ 페이지  리스트 ############
 page_List = {
@@ -26,10 +26,10 @@ page_List = {
 num_map = {
     '하나': 1, '한': 1, '둘': 2, '두': 2, '셋': 3, '세': 3, '넷': 4, '네': 4, '>다섯': 5, '여섯': 6, '일곱': 7, '여덟': 8, '아홉': 9, '열': 10
 }
+
+
 def korean_to_number(word):
     return num_map.get(word, None)
-
-
 
 
 ############ 키오스크: "어서오세요. 주문을 도와드리는 키오스키입니다." ############
@@ -43,11 +43,14 @@ def find_best_match(input_str, menuDB):
         return best_match
     return None
 # 사용자의 입력에서  DB 안에 있는 메뉴 명인지, 수량은 몇개인지 분석
+
+
 def shop_parse_UserInput(user_input):
     dbMenu_Name = [menu.name for menu in Menu.query.all()]
     quantity = "1"
 
-    matched_menu = next((menu for menu in dbMenu_Name if menu in user_input), None)
+    matched_menu = next(
+        (menu for menu in dbMenu_Name if menu in user_input), None)
 
     if user_input in page_List:
         return None
@@ -67,9 +70,11 @@ def shop_parse_UserInput(user_input):
     return (matched_menu, quantity)
 
 # 장바구니 팝업 생성 및 수정
+
+
 def shop_parse_response(menu, quantity):
     if menu:
-        return { 
+        return {
             "message": f"{menu} {quantity}개 주문하시겠습니까?",
             "action": "chat-shoppingCart-popup",
             "menu": menu,
@@ -77,24 +82,30 @@ def shop_parse_response(menu, quantity):
         }
     else:
         parent_state, child_state = "initial"
-        return "해당 메뉴를 찾을 수 없습니다."   #비슷한 메뉴 있으면 추천 기능
+        return "해당 메뉴를 찾을 수 없습니다."  # 비슷한 메뉴 있으면 추천 기능
+
+
 def shop_parse_responseEdit(menu, quantity):
-    return { 
+    return {
         "message": f"{menu} {quantity}개 주문하시겠습니까?",
         "action": "chat-shoppingCart-popup-Edit",
         "menu": menu,
         "quantity": quantity
     }
+
+
 def shop_parse_responseOrderBtn():
-  return { 
-    "message": f"장바구니에 담았습니다.",
-    "action": "chat-shoppingCart-popup-orderBtn",
-  }
+    return {
+        "message": f"장바구니에 담았습니다.",
+        "action": "chat-shoppingCart-popup-orderBtn",
+    }
+
+
 def shop_parse_responseCloseBtn():
-  return { 
-    "message": f"장바구니를 취소했습니다.",
-    "action": "chat-shoppingCart-popup-closeBtn",
-  }
+    return {
+        "message": f"장바구니를 취소했습니다.",
+        "action": "chat-shoppingCart-popup-closeBtn",
+    }
 
 
 ############ 규칙 기반 챗봇 (주문 기능) ############
@@ -105,17 +116,20 @@ def order_parse_response():
         "message2": f"장바구니가 비어있습니다.",
         "action": "orderBtn-popup-click-trigger"
     }
+
+
 def order_parse_YesBtn():
     return {
         "message": f"주문이 완료되었습니다.",  # 몇분 기다리세요도 넣기
         "action": "orderBtn-click-trigger"
     }
+
+
 def order_parse_NoBtn():
     return {
         "message": f"주문이 취소되었습니다.",  # 몇분 기다리세요도 넣기
         "action": "orderBtn-close-click-trigger"
     }
-
 
 
 ############ 규칙 기반 챗봇 (페이지 로드) ############
@@ -139,21 +153,23 @@ def pageLoad_parse_response(user_input):
 ############ 규칙 기반 챗봇 (메뉴 검색 로드) ############
 def pageLoad_parse_searchMenu(user_input):
     user_input_keyword = user_input
-    matched_by_name = Menu.query.filter(Menu.name.like(f"%{user_input}%")).all()
-    matched_by_ingredient = Menu.query.filter(Menu.ingredient.like(f"%{user_input}%")).all()
-    all_matched = list(matched_by_name) +     list(matched_by_ingredient)
+    matched_by_name = Menu.query.filter(
+        Menu.name.like(f"%{user_input}%")).all()
+    matched_by_ingredient = Menu.query.filter(
+        Menu.ingredient.like(f"%{user_input}%")).all()
+    all_matched = list(matched_by_name) + list(matched_by_ingredient)
     matched_menus = list(set(all_matched))
     menu_names = [menu.name for menu in matched_menus]
     menu_string = ','.join(menu_names)
 
-    if menu_names: 
+    if menu_names:
         return {
             "message": f"{user_input_keyword} 검색 결과입니다.",
             "action": "loadpage-search",
             "searchMenus": menu_string
         }
     else:
-        return { "message": f"{user_input_keyword} 메뉴가 없습니다." }
+        return {"message": f"{user_input_keyword} 메뉴가 없습니다."}
 
 
 ############ 규칙 기반 챗봇 (추천 메뉴 로드) ############
@@ -188,6 +204,8 @@ parent_state = "initial"
 child_state = "initial"
 
 # 트리형 로직
+
+
 def tree_logic(user_message):
     global parent_state, child_state, menu, quantity
 
@@ -213,9 +231,9 @@ def tree_logic(user_message):
                 return spicy_parse_response()
             elif "검색" in user_message or "찾아줘" in user_message or "찾고싶어" in user_message:
                 parent_state = "search"
-                return "검색할 키워드를 말씀해 주세요..." 
+                return "검색할 키워드를 말씀해 주세요..."
             elif "추천" in user_message:
-                return pageLoad_parse_recommendMenu() 
+                return pageLoad_parse_recommendMenu()
             # 대화 스크립트 추가
             elif "안녕" in user_message or "여보세요" in user_message or "키 오 스 키 아" in user_message or "스퀘어" in user_message or "티오" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
                 return "안녕하세요! 무엇을 도와드릴까요?"
@@ -231,7 +249,7 @@ def tree_logic(user_message):
                 matchCall = re.search(r'([가-힣]+) 필요해', user_message)
                 if matchCall:
                     call = matchCall.group(1)
-                    if(call not in call_List):
+                    if (call not in call_List):
                         call = -1
                 else:
                     call = -1
@@ -245,7 +263,7 @@ def tree_logic(user_message):
                     "message": "잠시만 기다려주세요",
                     "action": "callEmployee",
                 }
-            
+
     elif parent_state == "shop":
         if child_state == "shop-checkout":
             if "개" in user_message:                 # "아냐 2개 주문할래"
@@ -258,17 +276,18 @@ def tree_logic(user_message):
                         if word in user_message:
                             quantity = str(korean_to_number(word))
                             return shop_parse_responseEdit(menu, quantity)
-            elif "취소" in user_message or "아니" in user_message or "잘못" in user_message or "전으로" in user_message:  # 아냐는 수량조절과 취소할 때 중복... 
+            # 아냐는 수량조절과 취소할 때 중복...
+            elif "취소" in user_message or "아니" in user_message or "잘못" in user_message or "전으로" in user_message:
                 parent_state = "initial"
                 child_state = "initial"
-                return shop_parse_responseCloseBtn() 
+                return shop_parse_responseCloseBtn()
             elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message:
                 parent_state = "initial"
                 child_state = "initial"
-                return shop_parse_responseOrderBtn() 
+                return shop_parse_responseOrderBtn()
 
     elif parent_state == "order":
-        if "취소" in user_message or "잘못" in user_message or "전으로" in user_message: 
+        if "취소" in user_message or "잘못" in user_message or "전으로" in user_message:
             parent_state = "initial"
             return order_parse_NoBtn()
         elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message:
@@ -278,11 +297,10 @@ def tree_logic(user_message):
     elif parent_state == "search":
         parent_state = "initial"
         return pageLoad_parse_searchMenu(user_message)
-            
 
     else:
         return "이해하지 못했습니다. 다시 한 번 말씀해주세요."
-    
+
 
 ############ Flask 앱 생성 #############
 app = Flask(__name__)
@@ -293,7 +311,7 @@ app = Flask(__name__)
 @app.route("/chat", methods=["POST"])
 def chat_test():
     user_message = request.json["message"]
-   
+
     # 1. 먼저 트리형 로직 처리
     tree_response = tree_logic(user_message)
 
@@ -303,15 +321,15 @@ def chat_test():
         return jsonify({"response": tree_response})
 
     # 2. NLP 응답
-    #model_instance = NLPHandler()
-    #intent = model_instance.classify_intent(user_message)
-    #if intent == "recommend":
+    # model_instance = NLPHandler()
+    # intent = model_instance.classify_intent(user_message)
+    # if intent == "recommend":
     #    return pageLoad_parse_recommendMenu()
-    #elif intent == "greeting":
+    # elif intent == "greeting":
     #    return "안녕하세요"
-    #elif intent == "farewell":
+    # elif intent == "farewell":
     #    return "안녕히 가세요"
-    #elif intent == "test":
+    # elif intent == "test":
     #    return "hummmmmmm..."
 
     # 3. 알 수 없는 명령어 처리
@@ -337,11 +355,12 @@ def check_menu(chefInput):
             return menu
     return "no menu"
 
+
 @app.route("/chef", methods=["POST"])
 def chef_chat():
     # return render_template("chat.html")
     chef_message = request.json["message"]
-    if "번 완료" in chef_message and "번 테이블" in chef_message :
+    if "번 완료" in chef_message and "번 테이블" in chef_message:
         matchMenu = re.search(r'(\d+)번 완료', chef_message)
 
         if matchMenu:
@@ -360,7 +379,7 @@ def chef_chat():
             "table": table,
             "matchMenu": num,
         }
-    elif "번 테이블" in chef_message and "완료" in chef_message :
+    elif "번 테이블" in chef_message and "완료" in chef_message:
         checkMenu = check_menu(chef_message)
         if checkMenu == "no menu":
             matchTable = re.search(r'(\d+)번 테이블', chef_message)
@@ -400,12 +419,14 @@ def chef_chat():
             "soldOutMenu": soldOutMenu,
         }
 
+
 def check_menu(employeeInput):
     dbMenu_Name = [menu.name for menu in Menu.query.all()]
     for menu in dbMenu_Name:
         if menu in employeeInput:
             return menu
     return "no menu"
+
 
 @app.route("/employee", methods=["POST"])
 def employee_chat():
@@ -424,23 +445,23 @@ def employee_chat():
             table = matchTable.group(1)
         else:
             table = -1
-        
+
         return {
             "action": "completeMenu",
             "table": table,
             "num": num
         }
     elif "번 테이블" in employee_message and "완료" in employee_message:
-        
+
         matchTable = re.search(r'(\d+)번 테이블', employee_message)
 
         if matchTable:
             table = matchTable.group(1)
         else:
             table = -1
-        
+
         checkMenu = check_menu(employee_message)
-        if(checkMenu == "no menu") :
+        if (checkMenu == "no menu"):
             if "호출" in employee_message:
                 return {
                     "action": "completeCall",
@@ -453,9 +474,9 @@ def employee_chat():
                 }
         else:
             return {
-                "action" : "completeMenuName",
+                "action": "completeMenuName",
                 "table": table,
-                "matchMenu" : checkMenu
+                "matchMenu": checkMenu
             }
 
     elif "품절 해제" in employee_message:
@@ -464,15 +485,13 @@ def employee_chat():
             "action": "noSoldOutMenu",
             "soldOutMenu": soldOutMenu,
         }
-        
+
     elif "품절" in employee_message:
         soldOutMenu = check_menu(employee_message)
         return {
             "action": "soldOutMenu",
             "soldOutMenu": soldOutMenu,
         }
-
-
 
 
 ############ 데이터베이스 연동 ############
@@ -483,8 +502,10 @@ app.config['SQLALCHEMY_ECHO'] = True
 
 db = SQLAlchemy(app)
 # 데이터베이스 테이블 모델 정의
+
+
 class Menu(db.Model):
-    __tablename__ ='menu'
+    __tablename__ = 'menu'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50))
     price = db.Column(db.Integer)
@@ -500,6 +521,8 @@ class Menu(db.Model):
     def __repr__(self):
         return f'<menu {self.name}>'
 # 데이터베이스 연동
+
+
 @app.route('/dbmenu')
 def get_dbmenu():
     try:
@@ -512,6 +535,7 @@ def get_dbmenu():
     except Exception as e:
         app.logger.error(f"Database error: {e}")
         return str(e), 500
+
 
 @app.route("/")
 def chat_page():
