@@ -8,8 +8,7 @@ import re                               # 문자열에서 특정 패턴 찾기
 
 import sys
 # sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
-# sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
-# jvmpath = '/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/jre/lib/jli/libjli.dylib'
+sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
 
 # from koreanNum import korean_to_number, num_map
 # from nlp_model import NLPHandler
@@ -212,7 +211,7 @@ def tree_logic(user_message):
     if "처음으로" in user_message:
         parent_state = "initial"
         child_state = "initial"
-        return "어서오세요. 주문을 도와드리는 키오스키입니다."
+        return "불편을 드려 죄송합니다. 다시 주문해 주세요."
 
     if parent_state == "initial":
         if child_state == "initial":
@@ -299,7 +298,7 @@ def tree_logic(user_message):
         return pageLoad_parse_searchMenu(user_message)
 
     else:
-        return "이해하지 못했습니다. 다시 한 번 말씀해주세요."
+        return "다시 말씀해주세요."
 
 
 ############ Flask 앱 생성 #############
@@ -333,7 +332,7 @@ def chat_test():
     #    return "hummmmmmm..."
 
     # 3. 알 수 없는 명령어 처리
-    return jsonify({"response": "이해하지 못했습니다."})
+    return jsonify({"response": "다시 말씀해주세요."})
 
 
 @app.route('/update_state', methods=['POST'])
