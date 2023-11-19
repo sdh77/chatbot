@@ -221,7 +221,8 @@ child_state = "initial"
 
 def tree_logic(user_message):
     global parent_state, child_state, menu, quantity
-
+    if "상태" in user_message:
+        return f"{parent_state},{child_state}"
     if "처음으로" in user_message:
         parent_state = "initial"
         child_state = "initial"
