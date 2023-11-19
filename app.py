@@ -298,7 +298,7 @@ def tree_logic(user_message):
         return pageLoad_parse_searchMenu(user_message)
 
     else:
-        return "다시 말씀해주세요."
+        return "이해 하지 못 했습니다. 다시 말씀해주세요."
 
 
 ############ Flask 앱 생성 #############
