@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from fuzzywuzzy import process          # 유사 문자열 찾기
 import re                               # 문자열에서 특정 패턴 찾기
 
-import sys
+# import sys
 # sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
 # sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
 # jvmpath = '/Library/Java/JavaVirtualMachines/adoptopenjdk-8.jdk/Contents/Home/jre/lib/jli/libjli.dylib'
@@ -73,9 +73,10 @@ def shop_parse_UserInput(user_input):
 
 
 def shop_parse_response(menu, quantity):
+    global parent_state, child_state
     if menu:
         return {
-            "message": f"{menu} {quantity}개 장바구니에 담으시겠습니까?",
+            "message": f"{menu} {quantity}개 장바구니에 담으시겠습니까?{parent_state},{child_state}",
             "action": "chat-shoppingCart-popup",
             "menu": menu,
             "quantity": quantity
@@ -86,8 +87,10 @@ def shop_parse_response(menu, quantity):
 
 
 def shop_parse_responseEdit(menu, quantity):
+    global parent_state, child_state
+
     return {
-        "message": f"{menu} {quantity}개 장바구니에 담으시겠습니까?",
+        "message": f"{menu} {quantity}개 장바구니에 담으시겠습니까?{parent_state},{child_state}",
         "action": "chat-shoppingCart-popup-Edit",
         "menu": menu,
         "quantity": quantity
@@ -95,15 +98,19 @@ def shop_parse_responseEdit(menu, quantity):
 
 
 def shop_parse_responseOrderBtn():
+    global parent_state, child_state
+
     return {
-        "message": f"장바구니에 담았습니다.",
+        "message": f"장바구니에 담았습니다.{parent_state},{child_state}",
         "action": "chat-shoppingCart-popup-orderBtn",
     }
 
 
 def shop_parse_responseCloseBtn():
+    global parent_state, child_state
+
     return {
-        "message": f"장바구니를 취소했습니다.",
+        "message": f"장바구니를 취소했습니다.{parent_state},{child_state}",
         "action": "chat-shoppingCart-popup-closeBtn",
     }
 
@@ -111,23 +118,29 @@ def shop_parse_responseCloseBtn():
 ############ 규칙 기반 챗봇 (주문 기능) ############
 # 주문하기
 def order_parse_response():
+    global parent_state, child_state
+
     return {
-        "message": f"장바구니를 확인해주세요. 주문 내역이 맞으신가요?",
+        "message": f"장바구니를 확인해주세요. 주문 내역이 맞으신가요?{parent_state},{child_state}",
         "message2": f"장바구니가 비어있습니다.",
         "action": "orderBtn-popup-click-trigger"
     }
 
 
 def order_parse_YesBtn():
+    global parent_state, child_state
+
     return {
-        "message": f"주문이 완료되었습니다.",  # 몇분 기다리세요도 넣기
+        "message": f"주문이 완료되었습니다.{parent_state},{child_state}",  # 몇분 기다리세요도 넣기
         "action": "orderBtn-click-trigger"
     }
 
 
 def order_parse_NoBtn():
+    global parent_state, child_state
+
     return {
-        "message": f"주문이 취소되었습니다.",  # 몇분 기다리세요도 넣기
+        "message": f"주문이 취소되었습니다.{parent_state},{child_state}",  # 몇분 기다리세요도 넣기
         "action": "orderBtn-close-click-trigger"
     }
 
@@ -299,7 +312,8 @@ def tree_logic(user_message):
         return pageLoad_parse_searchMenu(user_message)
 
     else:
-        return "이해하지 못했습니다. 다시 한 번 말씀해주세요."
+
+        return "이해하지 못했습니다. 다시 한 번 말씀해주세요.{parent_state},{child_state}"
 
 
 ############ Flask 앱 생성 #############
@@ -333,7 +347,9 @@ def chat_test():
     #    return "hummmmmmm..."
 
     # 3. 알 수 없는 명령어 처리
-    return jsonify({"response": "이해하지 못했습니다."})
+    global parent_state, child_state
+
+    return jsonify({"response": f"이해하지 못했습니다.{parent_state},{child_state}"})
 
 
 @app.route('/update_state', methods=['POST'])
@@ -514,7 +530,7 @@ def employee_chat():
                     "action": "completeDrink",
                     "table": table
                 }
-            
+
             else:
                 return {
                     "action": "completeTable",
