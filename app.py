@@ -348,12 +348,17 @@ def update_state():
 
 
 ############ chef 주방장 메뉴 처리 상태 업데이트, 품절 관리 ############
-def check_menu(chefInput):
-    dbMenu_Name = [menu.name for menu in Menu.query.all()]
-    for menu in dbMenu_Name:
-        if menu in chefInput:
-            return menu
-    return "no menu"
+
+
+def food_best_match(input_str):
+    target_divs = ["파스타", "피자", "라이스", "샐러드", "스테이크", "사이드"]
+    menuDB = [menu.name for menu in Menu.query.filter(
+        Menu.div.in_(target_divs)).all()]
+
+    best_match, score = process.extractOne(input_str, menuDB)
+    if score > 70:
+        return best_match
+    return None
 
 
 @app.route("/chef", methods=["POST"])
@@ -380,7 +385,12 @@ def chef_chat():
             "matchMenu": num,
         }
     elif "번 테이블" in chef_message and "완료" in chef_message:
-        checkMenu = check_menu(chef_message)
+        checkMenu = food_best_match(chef_message)
+        if checkMenu:
+            checkMenu = food_best_match(chef_message)
+        else:
+            checkMenu = "no menu"
+
         if checkMenu == "no menu":
             matchTable = re.search(r'(\d+)번 테이블', chef_message)
             if matchTable:
@@ -405,27 +415,49 @@ def chef_chat():
                 "table": table,
                 "matchMenu": checkMenu,
             }
+
     elif "품절 해제" in chef_message:
-        soldOutMenu = check_menu(chef_message)
+        soldOutMenu = food_best_match(chef_message)
+        if soldOutMenu:
+            soldOutMenu = food_best_match(chef_message)
+        else:
+            soldOutMenu = "no menu"
+
         return {
             "action": "noSoldOutMenu",
             "soldOutMenu": soldOutMenu,
         }
 
     elif "품절" in chef_message:
-        soldOutMenu = check_menu(chef_message)
+        soldOutMenu = food_best_match(chef_message)
+        if soldOutMenu:
+            soldOutMenu = food_best_match(chef_message)
+        else:
+            soldOutMenu = "no menu"
         return {
             "action": "soldOutMenu",
             "soldOutMenu": soldOutMenu,
         }
 
 
-def check_menu(employeeInput):
-    dbMenu_Name = [menu.name for menu in Menu.query.all()]
-    for menu in dbMenu_Name:
-        if menu in employeeInput:
-            return menu
-    return "no menu"
+def drink_best_match(input_str):
+    target_divs = ["음료", "와인", "주류"]
+    menuDB = [menu.name for menu in Menu.query.filter(
+        Menu.div.in_(target_divs)).all()]
+
+    best_match, score = process.extractOne(input_str, menuDB)
+    if score > 70:
+        return best_match
+    return None
+
+
+def allMenu_best_match(input_str):
+    menuDB = [menu.name for menu in Menu.query.all()]
+
+    best_match, score = process.extractOne(input_str, menuDB)
+    if score > 70:
+        return best_match
+    return None
 
 
 @app.route("/employee", methods=["POST"])
@@ -460,7 +492,12 @@ def employee_chat():
         else:
             table = -1
 
-        checkMenu = check_menu(employee_message)
+        checkMenu = allMenu_best_match(employee_message)
+        if checkMenu:
+            checkMenu = allMenu_best_match(employee_message)
+        else:
+            checkMenu = "no menu"
+
         if (checkMenu == "no menu"):
             if "호출" in employee_message:
                 return {
@@ -480,14 +517,22 @@ def employee_chat():
             }
 
     elif "품절 해제" in employee_message:
-        soldOutMenu = check_menu(employee_message)
+        soldOutMenu = drink_best_match(employee_message)
+        if soldOutMenu:
+            soldOutMenu = drink_best_match(employee_message)
+        else:
+            soldOutMenu = "no menu"
         return {
             "action": "noSoldOutMenu",
             "soldOutMenu": soldOutMenu,
         }
 
     elif "품절" in employee_message:
-        soldOutMenu = check_menu(employee_message)
+        soldOutMenu = drink_best_match(employee_message)
+        if soldOutMenu:
+            soldOutMenu = drink_best_match(employee_message)
+        else:
+            soldOutMenu = "no menu"
         return {
             "action": "soldOutMenu",
             "soldOutMenu": soldOutMenu,
@@ -526,7 +571,13 @@ class Menu(db.Model):
 @app.route('/dbmenu')
 def get_dbmenu():
     try:
-        dbmenu = Menu.query.all()
+        # dbmenu = Menu.query.all()
+        # target_divs = ["파스타", "피자", "라이스", "샐러드", "스테이크", "사이드"]
+        # dbmenu = Menu.query.filter(Menu.div.in_(target_divs)).all()
+
+        target_divs2 = ["음료", "와인", "주류"]
+        dbmenu = Menu.query.filter(Menu.div.in_(target_divs2)).all()
+
         if dbmenu:
             app.logger.info("Successfully fetched data from the database.")
         else:
@@ -540,3 +591,13 @@ def get_dbmenu():
 @app.route("/")
 def chat_page():
     return render_template("chat.html")
+
+
+@app.route("/chef")
+def chef_page():
+    return render_template("chef.html")
+
+
+@app.route("/employee")
+def employee_page():
+    return render_template("employee.html")

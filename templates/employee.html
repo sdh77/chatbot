@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-  <title>주방장 쳇</title>
+  <title>종업원 쳇</title>
 </head>
 
 <body>
@@ -21,7 +21,7 @@
       .then((response) => response.json())
       .then((data) => {
         const host = data.Host; // API 키 가져오기
-        newURL = "https://" + host + "/flask-app/chef";
+        newURL = "https://" + host + "/flask-app/employee";
         // 나머지 코드
       })
       .catch((error) => {
@@ -43,6 +43,8 @@
           if (data.action) {
             messagesDiv.append(`<p>챗봇: ${data.action}</p>`);
             messagesDiv.append(`<p>챗봇: ${data.soldOutMenu}</p>`);
+            messagesDiv.append(`<p>챗봇: ${data.matchMenu}</p>`);
+
           } else {
             messagesDiv.append(`<p>챗봇: NONe</p>`);
           }
