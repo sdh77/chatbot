@@ -75,7 +75,7 @@ def shop_parse_UserInput(user_input):
 def shop_parse_response(menu, quantity):
     if menu:
         return {
-            "message": f"{menu} {quantity}개 주문하시겠습니까?",
+            "message": f"{menu} {quantity}개 장바구니에 담으시겠습니까?",
             "action": "chat-shoppingCart-popup",
             "menu": menu,
             "quantity": quantity
@@ -87,7 +87,7 @@ def shop_parse_response(menu, quantity):
 
 def shop_parse_responseEdit(menu, quantity):
     return {
-        "message": f"{menu} {quantity}개 주문하시겠습니까?",
+        "message": f"{menu} {quantity}개 장바구니에 담으시겠습니까?",
         "action": "chat-shoppingCart-popup-Edit",
         "menu": menu,
         "quantity": quantity
@@ -281,7 +281,7 @@ def tree_logic(user_message):
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseCloseBtn()
-            elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message:
+            elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message or "담아줘" in user_message or "담아" in user_message:
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseOrderBtn()
@@ -290,7 +290,7 @@ def tree_logic(user_message):
         if "취소" in user_message or "잘못" in user_message or "전으로" in user_message:
             parent_state = "initial"
             return order_parse_NoBtn()
-        elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message:
+        elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message:
             parent_state = "initial"
             return order_parse_YesBtn()
 
@@ -504,6 +504,17 @@ def employee_chat():
                     "action": "completeCall",
                     "table": table
                 }
+            elif "음식" in employee_message:
+                return {
+                    "action": "completeFood",
+                    "table": table
+                }
+            elif "주류" in employee_message:
+                return {
+                    "action": "completeDrink",
+                    "table": table
+                }
+            
             else:
                 return {
                     "action": "completeTable",
