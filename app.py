@@ -219,7 +219,7 @@ def tree_logic(user_message):
     if "처음으로" in user_message:
         parent_state = "initial"
         child_state = "initial"
-        return rollbackbase() 
+        return rollbackbase()
 
     if parent_state == "initial":
         if child_state == "initial":
@@ -243,6 +243,7 @@ def tree_logic(user_message):
                 return pageLoad_parse_recommendMenu()
             # 대화 스크립트 추가
             elif "안녕" in user_message or "여보세요" in user_message or "큐스키야" in user_message or "기오스키" in user_message or "지오스키" in user_message  or "디오스키" in user_message or "키 오 스 키 아" in user_message or "스퀘어" in user_message or "티오" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
+
                 return "안녕하세요! 무엇을 도와드릴까요?"
             elif "뭐 먹을까" in user_message or "오늘 뭐 먹지" in user_message or "뭐 먹지" in user_message or "결정 장애" in user_message or "못 고르겠어" in user_message or "골라줘" in user_message or "못 고르겠다" in user_message or "빨리 골라" in user_message or "골라주라" in user_message:
                 return pageLoad_parse_recommendMenu()
@@ -539,7 +540,7 @@ def employee_chat():
                     "action": "completeDrink",
                     "table": table
                 }
-            
+
             else:
                 return {
                     "action": "completeTable",
