@@ -127,7 +127,7 @@ def order_parse_response():
 
 def order_parse_YesBtn():
     return {
-        "message": f"주문이 완료되었습니다.",  # 몇분 기다리세요도 넣기
+        "message": f"주문이 완료되었습니다. 이용해 주셔서 감사합니다.",  # 몇분 기다리세요도 넣기
         "action": "orderBtn-click-trigger"
     }
 
