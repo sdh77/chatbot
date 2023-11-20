@@ -6,9 +6,9 @@ from flask_sqlalchemy import SQLAlchemy
 from fuzzywuzzy import process          # 유사 문자열 찾기
 import re                               # 문자열에서 특정 패턴 찾기
 
-import sys
+#import sys
 # sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
-sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
+#sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
 
 # from koreanNum import korean_to_number, num_map
 # from nlp_model import NLPHandler
@@ -23,7 +23,7 @@ page_List = {
 }
 ############ 숫자-한국어  리스트 ############
 num_map = {
-    '하나': 1, '한': 1, '둘': 2, '두': 2, '셋': 3, '세': 3, '넷': 4, '네': 4, '>다섯': 5, '여섯': 6, '일곱': 7, '여덟': 8, '아홉': 9, '열': 10
+    '하나': 1, '한': 1, '둘': 2, '두': 2, '셋': 3, '세': 3, '넷': 4, '네': 4, '다섯': 5, '여섯': 6, '일곱': 7, '여덟': 8, '아홉': 9, '열': 10
 }
 
 
@@ -242,7 +242,7 @@ def tree_logic(user_message):
             elif "추천" in user_message:
                 return pageLoad_parse_recommendMenu()
             # 대화 스크립트 추가
-            elif "안녕" in user_message or "여보세요" in user_message or "키 오 스 키 아" in user_message or "스퀘어" in user_message or "티오" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
+            elif "안녕" in user_message or "여보세요" in user_message or "큐스키야" in user_message or "기오스키" in user_message or "지오스키" in user_message  or "디오스키" in user_message or "키 오 스 키 아" in user_message or "스퀘어" in user_message or "티오" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
                 return "안녕하세요! 무엇을 도와드릴까요?"
             elif "뭐 먹을까" in user_message or "오늘 뭐 먹지" in user_message or "뭐 먹지" in user_message or "결정 장애" in user_message or "못 고르겠어" in user_message or "골라줘" in user_message or "못 고르겠다" in user_message or "빨리 골라" in user_message or "골라주라" in user_message:
                 return pageLoad_parse_recommendMenu()
@@ -357,6 +357,18 @@ def update_state():
     if new_state:
         parent_state = new_state
         return order_parse_response()
+    return "연결 오류"
+
+
+@app.route('/update_state2', methods=['POST'])
+############ AJAX를 통해 추적 상태 수정 ############
+def update_state2():
+    global parent_state
+    global child_state
+    new_state = request.json['status']
+    if new_state:
+        parent_state = new_state
+        child_state = new_state
     return "연결 오류"
 
 
