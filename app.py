@@ -34,6 +34,14 @@ def korean_to_number(word):
 ############ 키오스크: "어서오세요. 주문을 도와드리는 키오스키입니다." ############
 
 
+############ 처음으로 ############
+def rollbackbase():
+    return {
+        "message": "불편을 드려 죄송합니다. 다시 도와드릴게요",
+        "action": "rollbackbase"
+    }
+
+
 ############ 규칙 기반 챗봇 (장바구니 기능) ############
 # 사용자의 입력에서, 메뉴 명을 잘못 입력했을 시, 유사한 메뉴를 추천하는 기능
 def find_best_match(input_str, menuDB):
@@ -119,7 +127,7 @@ def order_parse_response():
 
 def order_parse_YesBtn():
     return {
-        "message": f"주문이 완료되었습니다.",  # 몇분 기다리세요도 넣기
+        "message": f"주문이 완료되었습니다. 이용해 주셔서 감사합니다.",  # 몇분 기다리세요도 넣기
         "action": "orderBtn-click-trigger"
     }
 
@@ -211,7 +219,7 @@ def tree_logic(user_message):
     if "처음으로" in user_message:
         parent_state = "initial"
         child_state = "initial"
-        return "불편을 드려 죄송합니다. 다시 주문해 주세요."
+        return rollbackbase() 
 
     if parent_state == "initial":
         if child_state == "initial":
