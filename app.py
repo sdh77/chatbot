@@ -243,7 +243,6 @@ def tree_logic(user_message):
                 return pageLoad_parse_recommendMenu()
             # 대화 스크립트 추가
             elif "안녕" in user_message or "여보세요" in user_message or "큐스키야" in user_message or "기오스키" in user_message or "지오스키" in user_message  or "디오스키" in user_message or "키 오 스 키 아" in user_message or "스퀘어" in user_message or "티오" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
-
                 return "안녕하세요! 무엇을 도와드릴까요?"
             elif "뭐 먹을까" in user_message or "오늘 뭐 먹지" in user_message or "뭐 먹지" in user_message or "결정 장애" in user_message or "못 고르겠어" in user_message or "골라줘" in user_message or "못 고르겠다" in user_message or "빨리 골라" in user_message or "골라주라" in user_message:
                 return pageLoad_parse_recommendMenu()
@@ -291,7 +290,7 @@ def tree_logic(user_message):
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseCloseBtn()
-            elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message or "담아" in user_message or "넣어" in user_message or "추가" in user_message:
+            elif "응" in user_message or "웅" in user_message or "주문" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message or "담아" in user_message or "넣어" in user_message or "추가" in user_message:
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseOrderBtn()
@@ -299,10 +298,10 @@ def tree_logic(user_message):
                 return "이해 하지 못 했습니다. 다시 말씀해주세요."
 
     elif parent_state == "order":
-        if "취소" in user_message or "잘못" in user_message or "전으로" in user_message:
+        if "취소" in user_message or "잘못" in user_message or "전으로" in user_messagae or "아니" in user_message:
             parent_state = "initial"
             return order_parse_NoBtn()
-        elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message:
+        elif "응" in user_message or "웅" in user_message or "주문" in user_message "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message:
             parent_state = "initial"
             return order_parse_YesBtn()
         else:
