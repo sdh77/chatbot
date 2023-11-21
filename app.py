@@ -262,8 +262,6 @@ def tree_logic(user_message):
                     "message": "잠시만 기다려주세요",
                     "action": "callEmployee",
                 }
-        else:
-            return "이해 하지 못 했습니다. 다시 말씀해주세요."
 
     elif parent_state == "shop":
         if child_state == "shop-checkout":
@@ -286,8 +284,6 @@ def tree_logic(user_message):
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseOrderBtn()
-            else:
-                return "이해 하지 못 했습니다. 다시 말씀해주세요."
 
     elif parent_state == "order":
         if "취소" in user_message or "잘못" in user_message or "전으로" in user_message:
@@ -296,15 +292,13 @@ def tree_logic(user_message):
         elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message:
             parent_state = "initial"
             return order_parse_YesBtn()
-        else:
-            return "이해 하지 못 했습니다. 다시 말씀해주세요."
 
     elif parent_state == "search":
         parent_state = "initial"
         return pageLoad_parse_searchMenu(user_message)
 
-    else:
-        return "이해 하지 못 했습니다. 다시 말씀해주세요."
+    # else:
+    #     return "이해 하지 못 했습니다. 다시 말씀해주세요."
 
 
 ############ Flask 앱 생성 #############
@@ -338,7 +332,7 @@ def chat_test():
     #    return "hummmmmmm..."
 
     # 3. 알 수 없는 명령어 처리
-    return jsonify({"response2": "다시 말씀해주세요."})
+    return jsonify({"response": "다시 말씀해주세요."})
 
 
 @app.route('/update_state', methods=['POST'])
@@ -519,7 +513,8 @@ def employee_chat():
                     "action": "completeDrink",
                     "table": table
                 }
-            
+
+
             else:
                 return {
                     "action": "completeTable",
