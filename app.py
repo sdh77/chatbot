@@ -6,7 +6,7 @@ from flask_sqlalchemy import SQLAlchemy
 from fuzzywuzzy import process          # 유사 문자열 찾기
 import re                               # 문자열에서 특정 패턴 찾기
 
-import sys
+# import sys
 # sys.path.append('/var/www/chatbot/data')    # 데이터 디렉토리 경로 삽입
 # sys.path.append('/Users/yangsee/chatbot/data')    # 데이터 디렉토리 경로 삽입
 
@@ -19,11 +19,11 @@ call_List = {
 }
 ############ 페이지  리스트 ############
 page_List = {
-    "전체", "파스타", "라이스", "샐러드", "피자", "스테이크", "사이드", "음료", "와인 및 주류"
+    "전체", "파스타", "라이스", "샐러드", "피자", "스테이크", "사이드", "음료", "술"
 }
 ############ 숫자-한국어  리스트 ############
 num_map = {
-    '하나': 1, '한': 1, '둘': 2, '두': 2, '셋': 3, '세': 3, '넷': 4, '네': 4, '>다섯': 5, '여섯': 6, '일곱': 7, '여덟': 8, '아홉': 9, '열': 10
+    '하나': 1, '한': 1, '둘': 2, '두': 2, '셋': 3, '세': 3, '넷': 4, '네': 4, '다섯': 5, '여섯': 6, '일곱': 7, '여덟': 8, '아홉': 9, '열': 10
 }
 
 
@@ -35,7 +35,11 @@ def korean_to_number(word):
 
 
 ############ 처음으로 ############
-# 
+def rollbackbase():
+    return {
+        "message": "불편을 드려 죄송합니다. 다시 도와드릴게요",
+        "action": "rollbackbase"
+    }
 
 
 ############ 규칙 기반 챗봇 (장바구니 기능) ############
@@ -58,10 +62,13 @@ def shop_parse_UserInput(user_input):
     if user_input in page_List:
         return None
 
-    if user_input and not matched_menu and len(user_input) >= 2:
+    if user_input and not matched_menu and len(user_input) >= 3:
         matched_menu = find_best_match(user_input, dbMenu_Name)
 
     quantity_match = re.search(r'(\d+)개', user_input)
+    if not quantity_match:
+        quantity_match = re.search(r'(\d+)병', user_input)
+
     if quantity_match:
         quantity = quantity_match.group(1)
     else:
@@ -138,7 +145,8 @@ def order_parse_NoBtn():
 ############ 규칙 기반 챗봇 (페이지 로드) ############
 # 원하는 페이지 로드 (상단 메뉴바)
 def pageLoad_parse_response(user_input):
-    matchPage = re.search(r'([가-힣]+) (보여|주문).*', user_input)
+    # matchPage = re.search(r'([가-힣]+) (메뉴|보여|주문).*', user_input)
+    matchPage = re.search(r'([가-힣]+) .*', user_input)
     if matchPage:
         page = matchPage.group(1)
         if page in page_List:
@@ -215,7 +223,7 @@ def tree_logic(user_message):
     if "처음으로" in user_message:
         parent_state = "initial"
         child_state = "initial"
-        return "불편을 드려 죄송합니다. 다시 도와드릴게요" 
+        return rollbackbase()
 
     if parent_state == "initial":
         if child_state == "initial":
@@ -238,7 +246,8 @@ def tree_logic(user_message):
             elif "추천" in user_message:
                 return pageLoad_parse_recommendMenu()
             # 대화 스크립트 추가
-            elif "안녕" in user_message or "여보세요" in user_message or "키 오 스 키 아" in user_message or "스퀘어" in user_message or "티오" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
+            elif "안녕" in user_message or "여보세요" in user_message or "큐스키야" in user_message or "기오스키" in user_message or "지오스키" in user_message or "디오스키" in user_message or "키 오 스 키 아" in user_message or "스퀘어" in user_message or "티오" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
+                # elif "안녕" in user_message or "여보세요" in user_message or "꿈돌아" in user_message or "꿈돌" in user_message or "꿈틀" in user_message or "꿈들" in user_message or "꿈 돌아" in user_message or "꿈도라" in user_message or "꿈 도라" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
                 return "안녕하세요! 무엇을 도와드릴까요?"
             elif "뭐 먹을까" in user_message or "오늘 뭐 먹지" in user_message or "뭐 먹지" in user_message or "결정 장애" in user_message or "못 고르겠어" in user_message or "골라줘" in user_message or "못 고르겠다" in user_message or "빨리 골라" in user_message or "골라주라" in user_message:
                 return pageLoad_parse_recommendMenu()
@@ -248,6 +257,14 @@ def tree_logic(user_message):
                 return "오늘 뭐 먹지 라고 말해보세요."
             elif "시끄" in user_message or "바보" in user_message or "멍청" in user_message or "멍충" in user_message:
                 return "죄송합니다. 제가 도움이 되지 못한 것 같네요."
+            elif "다음" in user_message:
+                return {
+                    "action": "uppage"
+                }
+            elif "이전" in user_message:
+                return {
+                    "action": "downpage"
+                }
             elif "필요해" in user_message:
                 matchCall = re.search(r'([가-힣]+) 필요해', user_message)
                 if matchCall:
@@ -271,8 +288,11 @@ def tree_logic(user_message):
 
     elif parent_state == "shop":
         if child_state == "shop-checkout":
-            if "개" in user_message:                 # "아냐 2개 주문할래"
+            if "개" in user_message or "병" in user_message:                 # "아냐 2개 주문할래"
                 quantity_match = re.search(r'(\d+)개', user_message)
+                if not quantity_match:
+                    quantity_match = re.search(r'(\d+)병', user_message)
+
                 if quantity_match:
                     quantity = quantity_match.group(1)
                     return shop_parse_responseEdit(menu, quantity)
@@ -282,11 +302,11 @@ def tree_logic(user_message):
                             quantity = str(korean_to_number(word))
                             return shop_parse_responseEdit(menu, quantity)
             # 아냐는 수량조절과 취소할 때 중복...
-            elif "취소" in user_message or "아니" in user_message or "잘못" in user_message or "전으로" in user_message or "싫어" in user_message:
+            elif "취소" in user_message or "아니" in user_message or "잘못" in user_message or "전으로" in user_message:
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseCloseBtn()
-            elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message or "담아" in user_message or "넣어" in user_message or "추가" in user_message:
+            elif "응" in user_message or "웅" in user_message or "주문" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message or "담아" in user_message or "넣어" in user_message or "추가" in user_message:
                 parent_state = "initial"
                 child_state = "initial"
                 return shop_parse_responseOrderBtn()
@@ -294,10 +314,10 @@ def tree_logic(user_message):
                 return "이해 하지 못 했습니다. 다시 말씀해주세요."
 
     elif parent_state == "order":
-        if "취소" in user_message or "아니" in user_message or "잘못" in user_message or "전으로" in user_message or "싫어" in user_message:
+        if "취소" in user_message or "잘못" in user_message or "전으로" in user_message or "아니" in user_message:
             parent_state = "initial"
             return order_parse_NoBtn()
-        elif "응" in user_message or "웅" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message:
+        elif "응" in user_message or "웅" in user_message or "주문" in user_message or "어" in user_message or "맞아" in user_message or "네" in user_message or "해줘" in user_message or "그래" in user_message or "좋아" in user_message or "해봐" in user_message or "오냐" in user_message or "알겠어" in user_message or "해주세요" in user_message or "알겠습니다" in user_message or "넵" in user_message or "넹" in user_message or "좋아요" in user_message or "그랭" in user_message or "할래" in user_message:
             parent_state = "initial"
             return order_parse_YesBtn()
         else:
@@ -353,6 +373,18 @@ def update_state():
     if new_state:
         parent_state = new_state
         return order_parse_response()
+    return "연결 오류"
+
+
+@app.route('/update_state2', methods=['POST'])
+############ AJAX를 통해 추적 상태 수정 ############
+def update_state2():
+    global parent_state
+    global child_state
+    new_state = request.json['status']
+    if new_state:
+        parent_state = new_state
+        child_state = new_state
     return "연결 오류"
 
 
@@ -523,7 +555,7 @@ def employee_chat():
                     "action": "completeDrink",
                     "table": table
                 }
-            
+
             else:
                 return {
                     "action": "completeTable",
