@@ -145,7 +145,7 @@ def order_parse_NoBtn():
 ############ 규칙 기반 챗봇 (페이지 로드) ############
 # 원하는 페이지 로드 (상단 메뉴바)
 def pageLoad_parse_response(user_input):
-    #matchPage = re.search(r'([가-힣]+) (메뉴|보여|주문).*', user_input)
+    # matchPage = re.search(r'([가-힣]+) (메뉴|보여|주문).*', user_input)
     matchPage = re.search(r'([가-힣]+) .*', user_input)
     if matchPage:
         page = matchPage.group(1)
@@ -247,7 +247,7 @@ def tree_logic(user_message):
                 return pageLoad_parse_recommendMenu()
             # 대화 스크립트 추가
             elif "안녕" in user_message or "여보세요" in user_message or "큐스키야" in user_message or "기오스키" in user_message or "지오스키" in user_message or "디오스키" in user_message or "키 오 스 키 아" in user_message or "스퀘어" in user_message or "티오" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
-            #elif "안녕" in user_message or "여보세요" in user_message or "꿈돌아" in user_message or "꿈돌" in user_message or "꿈틀" in user_message or "꿈들" in user_message or "꿈 돌아" in user_message or "꿈도라" in user_message or "꿈 도라" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
+                # elif "안녕" in user_message or "여보세요" in user_message or "꿈돌아" in user_message or "꿈돌" in user_message or "꿈틀" in user_message or "꿈들" in user_message or "꿈 돌아" in user_message or "꿈도라" in user_message or "꿈 도라" in user_message or "새끼" in user_message or "스키" in user_message or "스 키" in user_message or "키 오" in user_message or "키즈 키야" in user_message:
                 return "안녕하세요! 무엇을 도와드릴까요?"
             elif "뭐 먹을까" in user_message or "오늘 뭐 먹지" in user_message or "뭐 먹지" in user_message or "결정 장애" in user_message or "못 고르겠어" in user_message or "골라줘" in user_message or "못 고르겠다" in user_message or "빨리 골라" in user_message or "골라주라" in user_message:
                 return pageLoad_parse_recommendMenu()
@@ -257,6 +257,14 @@ def tree_logic(user_message):
                 return "오늘 뭐 먹지 라고 말해보세요."
             elif "시끄" in user_message or "바보" in user_message or "멍청" in user_message or "멍충" in user_message:
                 return "죄송합니다. 제가 도움이 되지 못한 것 같네요."
+            elif "다음" in user_message:
+                return {
+                    "action": "uppage"
+                }
+            elif "이전" in user_message:
+                return {
+                    "action": "downpage"
+                }
             elif "필요해" in user_message:
                 matchCall = re.search(r'([가-힣]+) 필요해', user_message)
                 if matchCall:
@@ -283,7 +291,7 @@ def tree_logic(user_message):
             if "개" in user_message or "병" in user_message:                 # "아냐 2개 주문할래"
                 quantity_match = re.search(r'(\d+)개', user_message)
                 if not quantity_match:
-                  quantity_match = re.search(r'(\d+)병', user_message)
+                    quantity_match = re.search(r'(\d+)병', user_message)
 
                 if quantity_match:
                     quantity = quantity_match.group(1)
